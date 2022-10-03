@@ -1,0 +1,8 @@
+15:43:18: 
+	+ Money: 484000
+	+ Before Money: 500000
+	+ After Amount: 16000
+15:43:32: 
+	+ Money: 16000
+	+ Before Money: 16000
+	+ After Amount: 0

@@ -1,0 +1,13 @@
+----------------03/10/2022----------------
+15:42:26: 
+	+ Money: 1950000
+	+ Before Money: 5000000
+	+ After Amount: 3050000
+15:42:51: 
+	+ Money: 1050000
+	+ Before Money: 3050000
+	+ After Amount: 2000000
+15:46:34: 
+	+ Money: 4000000
+	+ Before Money: 5000000
+	+ After Amount: 1000000

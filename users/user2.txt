@@ -1,2 +1,2 @@
 Full Name: NGUYEN GIANG QUYNH NHU
-CurrentAmount: 0
+CurrentAmount: 500,000

@@ -5,14 +5,14 @@ today = datetime.today()
 day = today.strftime("%d/%m/%Y")
 
 def openFile(pin):
-    users_file = open("user.txt", "a+")
+    users_file = open("./users/user.txt", "a+")
     users_file.seek(0)
     users = {}
     for user in users_file:
         splitUser = user[:-1].split(":")
         users[splitUser[0]] = splitUser[1]
     try:
-        return open(users[pin], "r+"), users[pin].split(".")[0]
+        return open("./users/" + users[pin], "r+"), users[pin].split(".")[0]
     except:
         print("Doesn't have this User, Please check again")
         isCreated = input("Or you can create an account (Y/N): ")
@@ -34,7 +34,7 @@ def openFile(pin):
             users[userAccount] = fileExtension
             f.close()
             print("Created successfully!!!")
-            return open(users[pin], "r+"), users[pin].split(".")[0]
+            return open("./users/" + users[pin], "r+"), users[pin].split(".")[0]
     finally:
         users_file.close()
 

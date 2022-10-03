@@ -6,3 +6,7 @@
 	+ Money: 2000000
 	+ Before Money: 3000000
 	+ After Amount: 1000000
+16:45:51 (03/10/2022): 
+	+ Money: 1000000
+	+ Before Money: 5000000
+	+ After Amount: 4000000

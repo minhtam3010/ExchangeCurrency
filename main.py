@@ -1,7 +1,38 @@
 from time import sleep
 
-def openFile(filename):
-    return open(filename, "r+")
+def openFile(pin):
+    users_file = open("user.txt", "a+")
+    users_file.seek(0)
+    users = {}
+    for user in users_file:
+        splitUser = user[:-1].split(":")
+        users[splitUser[0]] = splitUser[1]
+    print(users)
+    try:
+        return open(users[pin], "r+")
+    except:
+        print("Doesn't have this User, Please check again")
+        isCreated = input("Or you can create an account (Y/N): ")
+        if isCreated.upper() == "Y":
+            userAccount = input("Input new PIN or keep the old ones (N/O): ") # N is new, O is old
+            if userAccount.upper() == "N":
+                userAccount = input("Input new PIN: ") # N is new, O is old
+            else:
+                userAccount = pin
+
+            nameAccount = input("Enter your full name: ")
+            moneyAccount = input("Money which u deposit: ")
+            fileExtension = "user" + str(len(users) + 1)  + ".txt"
+            f = open(fileExtension, "w")
+            f.write("Full Name: " + nameAccount.upper() + "\n")
+            users_file.write(userAccount  + ":" + fileExtension + "\n")
+            f.write("CurrentAmount: " + moneyAccount)
+            users[userAccount] = fileExtension
+            f.close()
+            print("Created successfully!!!")
+            return open(users[pin], "r+")
+    finally:
+        users_file.close()
 
 # Get userName, currentAmount
 def getCurrentAmount(file):
@@ -13,7 +44,7 @@ def getCurrentAmount(file):
             userName = each[10:len(userName) - 1]
         else:
             print(each)
-            currentAmount = each[-9:]
+            currentAmount = each[15:]
     return userName, currentAmount
 
 # This function have fewer constrant range from 0 to 1 billiion & integer value 
@@ -66,13 +97,14 @@ def ExchangeCurrency(number):
     return resCurrency, number
 
 def main():
-    f = openFile("user1.txt")
+    pin = input("Enter your PIN: ")
+    f = openFile(pin)
     userName, currentAmount = getCurrentAmount(f)
     userInput = input("Please enter: ")
     currentAmount, userInput = filterAmount(currentAmount, userInput)
     while not (Check(currentAmount, userInput)):
         userInput = input("Your amount value greater than the current value that u have: ")
-        currentAmount, userInput = filterAmount(currentAmount, userInput)
+        _, userInput = filterAmount("0", userInput)
     remainderAmount = currentAmount - userInput
     Loading()
     EditFile(f, userName, remainderAmount)

@@ -109,7 +109,7 @@ def HistoryTransaction(file, grant, usr, beforeAmount, afterAmount, money):
     if grant == 0:
         file.write(current_time + ": " + usr + "\n\t+ " + "Money: " + "-" + str(money) + "\n")
     elif grant == 1:
-        file.write(current_time + ": " + "\n\t+ " + "Money: " + str(money) + "\n\t+ " + "Before Money: " + str(beforeAmount) + "\n\t+ " + "After Amount: " + str(afterAmount) + "\n")
+        file.write(current_time + " (" + day + ")" + ": " + "\n\t+ " + "Money: " + str(money) + "\n\t+ " + "Before Money: " + str(beforeAmount) + "\n\t+ " + "After Amount: " + str(afterAmount) + "\n")
 
 def getCurrentDay():
     days = open("day.txt", "a+")
@@ -127,8 +127,6 @@ def processHistory(usrExtension, currentAmount, remainderAmount, userInput):
             fileDay.write(day + "\n")
         HistoryTransaction(history_atm, 0, usrExtension, currentAmount, remainderAmount, userInput)
     with open("./HistoryTransaction/" + usrExtension + "_History.txt", "a") as history_usr:
-        if day != currentDay:
-            history_usr.write("----------------" + day + "----------------\n")
         HistoryTransaction(history_usr, 1, usrExtension, currentAmount, remainderAmount, userInput)
     fileDay.close()
 

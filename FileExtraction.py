@@ -52,8 +52,7 @@ class MyFileHandling(object):
                 currentAmount = each[15:]
         return userName, currentAmount
     
-    # This function have fewer constrant range from 0 to 1 billiion & integer value 
-    def EditFile(self, file, userName, value):
+    def filterNumber(self, value):
         str_value = str(value)
         res = []
         count = 0
@@ -66,6 +65,10 @@ class MyFileHandling(object):
                 res.append(i)
                 count += 1
         resStr = "".join(res[::-1])
+        return resStr
+    # This function have fewer constrant range from 0 to 1 billiion & integer value 
+    def EditFile(self, file, userName, value):
+        resStr = self.filterNumber(value)
         file.seek(0)
         file.write("Full Name:" + userName + "\n")
         file.write("CurrentAmount: " + resStr)
@@ -73,6 +76,8 @@ class MyFileHandling(object):
         file.close()
     
     def filterAmount(self, currentAmount, userInput):
+        if userInput == "":
+            return int(currentAmount.replace(",", "")), ""
         return int(currentAmount.replace(",", "")), int(userInput.replace(",", ""))
     
     def Check(self, currentAmount, userInput):

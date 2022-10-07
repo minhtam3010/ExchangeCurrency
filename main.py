@@ -26,8 +26,8 @@ def openFile(pin):
 
             nameAccount = input("Enter your full name: ")
             moneyAccount = input("Money which u deposit: ")
-            fileExtension = "user" + str(len(users) + 1)  + ".txt"
-            f = open(fileExtension, "w")
+            fileExtension = "user" + str(len(users))  + ".txt"
+            f = open("./users/" + fileExtension, "w")
             f.write("Full Name: " + nameAccount.upper() + "\n")
             users_file.write(userAccount  + ":" + fileExtension + "\n")
             f.write("CurrentAmount: " + moneyAccount)

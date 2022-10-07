@@ -13,7 +13,7 @@ class MyFileHandling(object):
             splitUser = user[:-1].split(":")
             users[splitUser[0]] = splitUser[1]
         try:
-            return open("./users/" + users[pin], "r+"), users[pin].split(".")[0]
+            return open("./users/" + users[pin], "r+"), users[pin].split(".")[0], pin
         except:
             print("Doesn't have this User, Please check again")
             isCreated = input("Or you can create an account (Y/N): ")
@@ -35,7 +35,7 @@ class MyFileHandling(object):
                 users[userAccount] = fileExtension
                 f.close()
                 print("Created successfully!!!")
-                return open("./users/" + users[pin], "r+"), users[pin].split(".")[0]
+                return open("./users/" + users[pin], "r+"), users[pin].split(".")[0], userAccount
         finally:
             users_file.close()
     

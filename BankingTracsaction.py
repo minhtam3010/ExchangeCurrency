@@ -43,8 +43,8 @@ class Banking(MyFileHandling):
 
     def ExchangeCurrencyFunc(self, number):
         currency_file, currency_dict = self.GetUnitOfMoneyInATM()
-        amountAtm_file, res = self.GetCurrentAmountATM()
-        currentAmountATM, _ = self.filterAmount(res[1], "")
+        amountAtm_file, location = self.GetCurrentAmountATM()
+        currentAmountATM, _ = self.filterAmount(location[1], "")
         if currentAmountATM < number:
             # TODO: Handle IF machine doesn't have adequate money 
             return
@@ -64,8 +64,8 @@ class Banking(MyFileHandling):
             else:
                 currencyList.pop(0)
         
-        self.ProcessAmountATM(currency_file, amountAtm_file, number, currency_dict, res)
-        return res_currency, currency_dict
+        self.ProcessAmountATM(currency_file, amountAtm_file, number, currency_dict, location)
+        return res_currency, location[0]
     
     def HistoryTransaction(self, file, grant, usr, beforeAmount, afterAmount, money):
         # grant 0: ATM-admin 1: user
@@ -86,22 +86,33 @@ class Banking(MyFileHandling):
             self.HistoryTransaction(history_usr, 1, usrExtension, currentAmount, remainderAmount, userInput)
         fileDay.close()
 
+    def printBillTransaction(self, date, time, location, receipt, card_no, fullname, amount, curent_amount):
+        from pathlib import Path
+        from docxtpl import DocxTemplate
+        document_path = Path(__file__).parent / "Word/bill_atm.docx"
+        doc = DocxTemplate(document_path)
+        context = {"DATE": date, "TIME": time, "LOCATION": location, "RECEIPT": receipt, "CARD": card_no, "FULLNAME": fullname, "AMOUNT": amount, "CURENTAMOUNT": curent_amount}
+        doc.render(context)
+        doc.save(Path(__file__).parent / "Word/generated_bill_transaction.docx")
+
 class ExchangeCurrency(object):
     
     def Running(self):
+        import random
         pin = input("Enter your PIN: ")
         extract_file = MyFileHandling()
         bankingTransaction = Banking()
-        f, usrExtension = extract_file.openFile(pin)
+        f, usrExtension, pin = extract_file.openFile(pin)
         userName, currentAmount = extract_file.getCurrentAmount(f)
         userInput = input("Please enter money: ")
         currentAmount, userInput = extract_file.filterAmount(currentAmount, userInput)
         while not (extract_file.Check(currentAmount, userInput)):
             userInput = input("Your amount value greater than the current value that u have: ")
             _, userInput = extract_file.filterAmount(currentAmount, userInput)
-        res, exchangeCurr = bankingTransaction.ExchangeCurrencyFunc(userInput)
-        print(res)
+        exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput)
+        print(exchangeCurr)
         remainderAmount = currentAmount - userInput
         extract_file.Loading()
         extract_file.EditFile(f, userName, remainderAmount)
+        bankingTransaction.printBillTransaction(extract_file.day, extract_file.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), pin[:5], userName, extract_file.filterNumber(userInput), extract_file.filterNumber(remainderAmount))
         bankingTransaction.processHistory(usrExtension, currentAmount, remainderAmount, userInput)

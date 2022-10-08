@@ -45,13 +45,21 @@ class Banking(MyFileHandling):
         currency_file, currency_dict = self.GetUnitOfMoneyInATM()
         amountAtm_file, location = self.GetCurrentAmountATM()
         currentAmountATM, _ = self.filterAmount(location[1], "")
-        if currentAmountATM < number:
-            # TODO: Handle IF machine doesn't have adequate money 
-            return
-
         currencyList = ["500000", "200000", "100000", "50000", "20000", "10000", "5000", "2000", "1000"]
         copy_number = number
         res_currency = {}
+        if currentAmountATM < number:
+            # TODO: Handle IF machine doesn't have adequate money
+            print("This ATM machine " + location[0] + " doesn't have adequate money for this transaction!!!")
+            smartATM_service = input("Do you want to wait for the automated pulling money process from another location?: ")
+            if smartATM_service.upper() == "Y":
+                print("Process is loading.......")
+                return
+            else:
+                return res_currency, number
+            
+
+
         while copy_number != 0:
             if int(currencyList[0]) <= copy_number:
                 if currency_dict[currencyList[0]] > 0:
@@ -110,6 +118,9 @@ class ExchangeCurrency(object):
             userInput = input("Your amount value greater than the current value that u have: ")
             _, userInput = extract_file.filterAmount(currentAmount, userInput)
         exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput)
+        if len(exchangeCurr) == 0:
+            print("Thanks for using the service. Have a great day!!!")
+            return
         print(exchangeCurr)
         remainderAmount = currentAmount - userInput
         extract_file.Loading()

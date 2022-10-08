@@ -1,4 +1,4 @@
-from BankingTracsaction import ExchangeCurrency
+from BankingATM.BankingTracsaction import ExchangeCurrency
 
 def main():
     exchange_currency = ExchangeCurrency()

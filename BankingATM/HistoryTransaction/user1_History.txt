@@ -34,3 +34,7 @@
 	+ Money: 2500000
 	+ Before Money: 5000000
 	+ After Amount: 2500000
+13:19:24 (08/10/2022): 
+	+ Money: 1380000
+	+ Before Money: 1380000
+	+ After Amount: 0

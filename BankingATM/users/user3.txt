@@ -1,2 +1,2 @@
 Full Name: TRAN TRUNG KIEN
-CurrentAmount: 1,000,000
+CurrentAmount: 500,000

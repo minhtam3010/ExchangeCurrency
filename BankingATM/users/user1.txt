@@ -1,2 +1,2 @@
 Full Name: LE MINH TAM
-CurrentAmount: 5,000,000
+CurrentAmount: 38,000,000

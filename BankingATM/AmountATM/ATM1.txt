@@ -1,2 +1,2 @@
-ATM Van Lang Q1
-CurrentAmount: 2,000,000
+ATM Văn Lang Quận 1
+CurrentAmount: 0

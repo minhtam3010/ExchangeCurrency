@@ -1,9 +1,9 @@
-from FileExtraction import MyFileHandling
+from BankingATM.FileExtraction import MyFileHandling
 
 class Banking(MyFileHandling):
 
     def GetUnitOfMoneyInATM(self):
-        currency_file = open("./AmountATM/unitOfMoneyATM1.txt", "a+")
+        currency_file = open("./BankingATM/AmountATM/unitOfMoneyATM1.txt", "a+")
         currency_file.seek(0)
 
         res = dict()
@@ -16,7 +16,7 @@ class Banking(MyFileHandling):
         return currency_file, res
 
     def GetCurrentAmountATM(self):
-        amountATM_file = open("./AmountATM/ATM1.txt", "a+")
+        amountATM_file = open("./BankingATM/AmountATM/ATM1.txt", "a+")
         amountATM_file.seek(0)
 
         res = []
@@ -77,23 +77,23 @@ class Banking(MyFileHandling):
     
     def processHistory(self, usrExtension, currentAmount, remainderAmount, userInput):
         fileDay, currentDay = self.getCurrentDay()
-        with open("./HistoryTransaction/historyATM.txt", "a") as history_atm:
+        with open("./BankingATM/HistoryTransaction/historyATM.txt", "a") as history_atm:
             if self.day != currentDay:
                 history_atm.write("----------------" + self.day + "----------------\n")
                 fileDay.write(self.day + "\n")
             self.HistoryTransaction(history_atm, 0, usrExtension, currentAmount, remainderAmount, userInput)
-        with open("./HistoryTransaction/" + usrExtension + "_History.txt", "a") as history_usr:
+        with open("./BankingATM/HistoryTransaction/" + usrExtension + "_History.txt", "a") as history_usr:
             self.HistoryTransaction(history_usr, 1, usrExtension, currentAmount, remainderAmount, userInput)
         fileDay.close()
 
     def printBillTransaction(self, date, time, location, receipt, card_no, fullname, amount, curent_amount):
         from pathlib import Path
         from docxtpl import DocxTemplate
-        document_path = Path(__file__).parent / "Word/bill_atm.docx"
+        document_path = Path(__file__).parent / "Bill/bill_atm.docx"
         doc = DocxTemplate(document_path)
         context = {"DATE": date, "TIME": time, "LOCATION": location, "RECEIPT": receipt, "CARD": card_no, "FULLNAME": fullname, "AMOUNT": amount, "CURENTAMOUNT": curent_amount}
         doc.render(context)
-        doc.save(Path(__file__).parent / "Word/generated_bill_transaction.docx")
+        doc.save(Path(__file__).parent / "Bill/generated_bill_transaction.docx")
 
 class ExchangeCurrency(object):
     

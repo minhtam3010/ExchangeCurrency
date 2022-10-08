@@ -6,14 +6,14 @@ class MyFileHandling(object):
         self.day = self.today.strftime("%d/%m/%Y")
 
     def openFile(self, pin):
-        users_file = open("./users/user.txt", "a+")
+        users_file = open("./BankingATM/users/user.txt", "a+")
         users_file.seek(0)
         users = {}
         for user in users_file:
             splitUser = user[:-1].split(":")
             users[splitUser[0]] = splitUser[1]
         try:
-            return open("./users/" + users[pin], "r+"), users[pin].split(".")[0], pin
+            return open("./BankingATM/users/" + users[pin], "r+"), users[pin].split(".")[0], pin
         except:
             print("Doesn't have this User, Please check again")
             isCreated = input("Or you can create an account (Y/N): ")
@@ -28,14 +28,14 @@ class MyFileHandling(object):
                 nameAccount = input("Enter your full name: ")
                 moneyAccount = input("Money which u deposit: ")
                 fileExtension = "user" + str(len(users))  + ".txt"
-                f = open("./users/" + fileExtension, "w")
+                f = open("./BankingATM/users/" + fileExtension, "w")
                 f.write("Full Name: " + nameAccount.upper() + "\n")
                 users_file.write(userAccount  + ":" + fileExtension + "\n")
                 f.write("CurrentAmount: " + moneyAccount)
                 users[userAccount] = fileExtension
                 f.close()
                 print("Created successfully!!!")
-                return open("./users/" + users[pin], "r+"), users[pin].split(".")[0], userAccount
+                return open("./BankingATM/users/" + users[pin], "r+"), users[pin].split(".")[0], userAccount
         finally:
             users_file.close()
     
@@ -96,7 +96,7 @@ class MyFileHandling(object):
         print("Successfully, please take the money beside u")
     
     def getCurrentDay(self):
-        days = open("day.txt", "a+")
+        days = open("./BankingATM/day.txt", "a+")
         days.seek(0)
         dayList = []
         for day in days:

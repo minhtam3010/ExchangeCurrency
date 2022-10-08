@@ -16,6 +16,17 @@ class GUI:
                 return True
         return False
 
+    def BalanceAccount(self, file_extension):
+        account_file = open("./BankingATM/users/" + file_extension, "r")
+        fullName = ""
+        balanceAccount = ""
+        for each in account_file:
+            if "\n" in each:
+                fullName = each[:-1]
+            else:
+                balanceAccount = each[15:]
+        return fullName, balanceAccount
+
     def CreateAccount(self, users_file, users, nameAccount, userAccount, deposit):
         fileExtension = "user" + str(len(users) + 1)  + ".txt"
         f = open("./BankingATM/users/" + fileExtension, "w")
@@ -88,18 +99,38 @@ class GUI:
                 if isValidated:
                     sg.popup("Login successfully", title="Congrats")
                     layout_service = [
-                        [sg.Button("BANK BALANCE"), sg.Button("TRANSFERING")],
+                        [sg.Button("CHECK BALANCE"), sg.Button("TRANSFERING")],
                         [sg.Button("DEPOSIT"), sg.Button("WITHDRAW")],
                         [sg.Exit()]
                     ]
-                    window_service = sg.Window("Services", layout_service, element_justification="Center")
+                    window_service = sg.Window("Services", layout_service, element_justification="center")
                     
                     while True:
                         window.hide()
                         event_service, value_service = window_service.read()
-                        if event_service == "Exit":
+                        if event_service == "CHECK BALANCE":
+                            fullName, balance = self.BalanceAccount(users[values["PIN_PERSONAL"]])
+                            layout_balance = [
+                                [sg.Text(fullName)],
+                                [sg.Text("Balance: " + balance)],
+                                [sg.Button("Back")]
+                            ]
+                            window_balance = sg.Window("Balance Account", layout_balance, element_justification="left")
+                            while True:
+                                window_service.hide()
+                                event_balance, _ = window_balance.read()
+                                
+                                if event_balance == "Back":
+                                    break
+                            window_service.un_hide()
+                            window_balance.close()
+
+                        elif event_service == "Exit":
                             window["PIN_PERSONAL"].update("")
-                            break
+                            isExited = sg.popup_ok_cancel("Do u want to exit?", title="Alert")
+                            if isExited == "OK":
+                                break
+
                     window.un_hide()
                     window_service.close()
                 else:

@@ -66,6 +66,7 @@ class MyFileHandling(object):
                 count += 1
         resStr = "".join(res[::-1])
         return resStr
+        
     # This function have fewer constrant range from 0 to 1 billiion & integer value 
     def EditFile(self, file, userName, value):
         resStr = self.filterNumber(value)

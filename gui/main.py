@@ -1,18 +1,21 @@
-from ctypes import sizeof
+from operator import le
 import PySimpleGUI as sg
 
 class GUI:
+
+    def __init__(self):
+        self.hold = "0"
 
     def getUsersFile(self):
         users_file = open("./BankingATM/users/user.txt", "r+")
         users = {}
         for user in users_file:
             splitUser = user[:-1].split(":")
-            users[splitUser[0]] = splitUser[1]
+            users[splitUser[1]] = splitUser[0]
         return users_file, users 
 
     def ValidateUser(self, users, username, pin):
-        for pin_file, username_file in users.items():
+        for username_file, pin_file in users.items():
             if pin == pin_file and username == username_file[:len(username_file)-4]:
                 return True
         return False
@@ -40,6 +43,27 @@ class GUI:
         users[userAccount] = fileExtension
         return True
 
+    def WithdrawFunc(self):
+        return
+
+    def addComma(self, event, values, window, length):
+        if length == 1:
+            window[event].update(values[:len(values)-2])
+        
+        if length == 3:
+            window[event].update(values[:len(values) - 1] + "," + values[-1])
+
+
+    def ValidateNumber(self, event, values, window, key):
+        # 0: use non-numeric; 1: length > 8
+        if event == key and values[key] and values[key][-1] not in ('0123456789'):
+            window[key].update(values[key][:-1])
+            return "0"
+        elif len(values[key]) > 8 and key == "PIN_PERSONAL":
+            window[key].update(values[key][:-1])
+            return "1"
+        return ""
+
     def Window(self):
         layout = [
             [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
@@ -53,11 +77,9 @@ class GUI:
         while True:
             users_file, users = self.getUsersFile()
             event, values = window.read()
-            if event == 'PIN_PERSONAL' and values['PIN_PERSONAL'] and values['PIN_PERSONAL'][-1] not in ('0123456789.'):
-                window['PIN_PERSONAL'].update(values['PIN_PERSONAL'][:-1])
+            if self.ValidateNumber(event, values, window, "PIN_PERSONAL") == "0":
                 window["OUTPUT"].update("Please enter validate number!!!")
-            elif len(values["PIN_PERSONAL"]) > 8:
-                window['PIN_PERSONAL'].update(values['PIN_PERSONAL'][:-1])
+            elif self.ValidateNumber(event, values, window, "PIN_PERSONAL") == "1":
                 window["OUTPUT"].update("The range of PIN is not acceptable more than 8 digits")
             else:
                 window["OUTPUT"].update("")
@@ -80,11 +102,9 @@ class GUI:
                 while True:
                     window.hide()
                     event2, values2 = window2.read()
-                    if event2 == 'PIN_PERSONAL' and values2['PIN_PERSONAL'] and values2['PIN_PERSONAL'][-1] not in ('0123456789.'):
-                        window2['PIN_PERSONAL'].update(values2['PIN_PERSONAL'][:-1])
+                    if self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "0":
                         window2["OUTPUT"].update("Please enter validate number!!!")
-                    elif len(values2["PIN_PERSONAL"]) > 8:
-                        window2['PIN_PERSONAL'].update(values2['PIN_PERSONAL'][:-1])
+                    elif self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "1":
                         window2["OUTPUT"].update("The range of PIN is not acceptable more than 8 digits")
 
                     if event2 == sg.WIN_CLOSED or event2 == "Back":
@@ -123,7 +143,7 @@ class GUI:
                         window.hide()
                         event_service, value_service = window_service.read()
                         if event_service == "CHECK BALANCE":
-                            fullName, balance = self.BalanceAccount(users[values["PIN_PERSONAL"]])
+                            fullName, balance = self.BalanceAccount(values["USERNAME"] + ".txt")
                             layout_balance = [
                                 [sg.Text(fullName)],
                                 [sg.Text("Balance: " + balance)],
@@ -138,7 +158,65 @@ class GUI:
                                     break
                             window_service.un_hide()
                             window_balance.close()
+                        elif event_service == "WITHDRAW":
+                            layout_withdraw = [
+                                [sg.Text("Money:"), sg.Input(key="MONEY", enable_events=True), sg.Button("Enter", size=(10, 1))],
+                                [sg.Button("Back", size=(35, 1))],
+                                [sg.Text(key="OUTPUT")]
+                            ]
+                            window_withdraw = sg.Window("Withdraw", layout_withdraw, element_justification="center", finalize=True)
+                            isNotWritten = True
+                            canDelete = False
+                            window_withdraw["MONEY"].update("0")
+                            length = 0
+                            while True:
+                                window_service.hide()
+                                event_withdraw, values_withdraw = window_withdraw.read()
 
+                                if event_withdraw == "Back":
+                                    break
+                                if self.ValidateNumber(event_withdraw, values_withdraw, window_withdraw, "MONEY") == "0":
+                                    window_withdraw["OUTPUT"].update("Using number only")
+                                    continue
+                                if len(values_withdraw["MONEY"]) == 0:
+                                    canDelete = True
+                                if canDelete and len(values_withdraw["MONEY"]) == 0:
+                                    isNotWritten = True
+                                    window_withdraw["MONEY"].update("0")
+                                    canDelete = False
+                                    length = 0
+                                    self.hold = ""
+                                    continue
+                                elif isNotWritten:
+                                    window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
+                                    isNotWritten = False
+                                    canDelete = True
+                                    length = 1
+                                    continue
+
+                                if self.hold == "":
+                                    self.hold = values_withdraw["MONEY"]
+                                elif length == 1 and self.hold == values_withdraw["MONEY"]:
+                                    print(self.hold, values_withdraw["MONEY"])
+                                    self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
+                                    length = 2
+                                    continue
+                                elif self.hold == values_withdraw["MONEY"]:
+                                    length -= 1
+                                    self.hold = values_withdraw["MONEY"][:-1]
+                                    continue
+                                else:
+                                    self.hold = values_withdraw["MONEY"][:-1]
+                                if length == 3:
+                                    self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
+                                    length = 1
+                                else:
+                                    length += 1
+                                
+
+
+                            window_service.un_hide()
+                            window_withdraw.close()
                         elif event_service == "Exit":
                             window["PIN_PERSONAL"].update("")
                             window["USERNAME"].update("")

@@ -1,3 +1,4 @@
+from ctypes import sizeof
 import PySimpleGUI as sg
 
 class GUI:
@@ -10,9 +11,9 @@ class GUI:
             users[splitUser[0]] = splitUser[1]
         return users_file, users 
 
-    def ValidateUser(self, users, pin):
-        for user in users.keys():
-            if pin == user:
+    def ValidateUser(self, users, username, pin):
+        for pin_file, username_file in users.items():
+            if pin == pin_file and username == username_file[:len(username_file)-4]:
                 return True
         return False
 
@@ -27,21 +28,27 @@ class GUI:
                 balanceAccount = each[15:]
         return fullName, balanceAccount
 
-    def CreateAccount(self, users_file, users, nameAccount, userAccount, deposit):
-        fileExtension = "user" + str(len(users) + 1)  + ".txt"
+    def CreateAccount(self, users_file, users, username, nameAccount, userAccount, deposit):
+        for user in users.values():
+            if username == user[:len(user)-4]:
+                return False
+        fileExtension = username + ".txt"
         f = open("./BankingATM/users/" + fileExtension, "w")
         f.write("Full Name: " + nameAccount.upper() + "\n")
         users_file.write(userAccount  + ":" + fileExtension + "\n")
         f.write("CurrentAmount: " + deposit)
         users[userAccount] = fileExtension
+        return True
 
     def Window(self):
         layout = [
-            [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", password_char="", enable_events=True), sg.Button("Enter")],
-            [sg.Button("Create Account"), sg.Exit()],
+            [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
+            [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", password_char="*", enable_events=True)],
+            [sg.Button("Enter", size=(27, 1.2))],
+            [sg.Button("Create Account", size=(12, 1.2), ), sg.Exit(size=(8, 1.2))],
             [sg.Text(key="OUTPUT")]
         ]
-
+        sg.set_options(font="Times", element_size=(100, 2), )
         window = sg.Window("ATM", layout, element_justification="right")
         while True:
             users_file, users = self.getUsersFile()
@@ -56,13 +63,16 @@ class GUI:
                 window["OUTPUT"].update("")
 
             if event == sg.WIN_CLOSED or event == "Exit":
-                break
+                isExited = sg.popup_ok_cancel("Do u want to exit?", title="Alert")
+                if isExited == "OK":
+                    break
             elif event == "Create Account":
                 layout2 = [
-                    [sg.Text("Full Name:"), sg.Input(key="FULLNAME")],
-                    [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", enable_events=True)],
+                    [sg.Text("FULL NAME:"), sg.Input(key="FULLNAME")],
+                    [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
+                    [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", enable_events=True, password_char="*")],
                     [sg.Text("DEPOSIT"), sg.Input(key="DEPOSIT")],
-                    [sg.Button("Create"), sg.Button("Back")],
+                    [sg.Button("Create", size=(10, 1.2)), sg.Button("Back", size=(10, 1.2))],
                     [sg.Text(key="OUTPUT")]
                 ]
                 window2 = sg.Window("Create an Account", layout2, element_justification="right")
@@ -84,9 +94,13 @@ class GUI:
                         if (len(values2["PIN_PERSONAL"]) != 8):
                             window2["OUTPUT"].update("Can't create. Your PIN must have 8 digits!!!")
                             continue
-                        print(values2)
-                        self.CreateAccount(users_file, users, values2["FULLNAME"], values2["PIN_PERSONAL"], values2["DEPOSIT"])
-                        sg.popup("Create an account successfully", title="Congrats")
+                        isCreated = self.CreateAccount(users_file, users, values2["USERNAME"], values2["FULLNAME"], values2["PIN_PERSONAL"], values2["DEPOSIT"])
+                        if isCreated:
+                            sg.popup("Create an account successfully", title="Congrats")
+                        else:
+                            window2["OUTPUT"].update("Can't create. The username is already exisited in our system!!!")
+                            window2["USERNAME"].SetFocus(True)
+                            continue
                         users_file.close()
                         break
                 window.un_hide()
@@ -95,15 +109,15 @@ class GUI:
                 if (len(values["PIN_PERSONAL"]) != 8):
                     window["OUTPUT"].update("Your PIN must have 8 digits!!!")
                     continue
-                isValidated = self.ValidateUser(users, values["PIN_PERSONAL"])
+                isValidated = self.ValidateUser(users, values["USERNAME"], values["PIN_PERSONAL"])
                 if isValidated:
                     sg.popup("Login successfully", title="Congrats")
                     layout_service = [
-                        [sg.Button("CHECK BALANCE"), sg.Button("TRANSFERING")],
-                        [sg.Button("DEPOSIT"), sg.Button("WITHDRAW")],
-                        [sg.Exit()]
+                        [sg.Button("CHECK BALANCE", size=(15, 2)), sg.Button("TRANSFERING", size=(15, 2))],
+                        [sg.Button("DEPOSIT", size=(15, 2)), sg.Button("WITHDRAW", size=(15, 2))],
+                        [sg.Exit(size=(41, 2))]
                     ]
-                    window_service = sg.Window("Services", layout_service, element_justification="center")
+                    window_service = sg.Window("Services", layout_service, element_justification="left")
                     
                     while True:
                         window.hide()
@@ -127,6 +141,7 @@ class GUI:
 
                         elif event_service == "Exit":
                             window["PIN_PERSONAL"].update("")
+                            window["USERNAME"].update("")
                             isExited = sg.popup_ok_cancel("Do u want to exit?", title="Alert")
                             if isExited == "OK":
                                 break
@@ -136,6 +151,7 @@ class GUI:
                 else:
                     sg.popup("Your pin doesn't exist or incorrect!!!", title="Alert")
                     window["PIN_PERSONAL"].update("")
+                    window["USERNAME"].update("")
         window.close()
         users_file.close()
 

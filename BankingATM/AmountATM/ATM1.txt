@@ -1,2 +1,2 @@
 ATM Văn Lang Quận 1
-CurrentAmount: 5,000,000
+CurrentAmount: 4,900,000

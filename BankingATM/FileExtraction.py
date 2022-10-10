@@ -71,7 +71,7 @@ class MyFileHandling(object):
     def EditFile(self, file, userName, value):
         resStr = self.filterNumber(value)
         file.seek(0)
-        file.write("Full Name:" + userName + "\n")
+        file.write("Full Name: " + userName + "\n")
         file.write("CurrentAmount: " + resStr)
         file.truncate()
         file.close()
@@ -86,7 +86,9 @@ class MyFileHandling(object):
             return False
         return True
 
-    def Loading(self):
+    def Loading(self, acess="Console"):
+        if acess != "Console":
+            return
         from time import sleep
         print("----------------------------- Working -----------------------------")
         sleep(0.5)

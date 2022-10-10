@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
+from gui.processLoading import ProcessLoading
 
 class GUI:
 
@@ -9,7 +10,6 @@ class GUI:
         self.Bank = Banking()
 
     def getUsersFile(self):
-        # users_file = open("./BankingATM/users/user.txt", "r+")
         users_file = open("./BankingATM/users/user.txt", "r+")
         users = {}
         for user in users_file:
@@ -62,7 +62,6 @@ class GUI:
             else:
                 window[event].update(values[0] + "," + values[1:])
         elif length > 4 and length <= 6:
-            # print(length, values[:-5], values[-4], values[-5], values[-3:], values)
             if length_values > 2:
                 res = split_values[0]
                 for i in range(1, length_values):
@@ -84,7 +83,6 @@ class GUI:
                 count += 1
                 res += i
         window[event].update(res[::-1])
-
 
     def ValidateNumber(self, event, values, window, key):
         # 0: use non-numeric; 1: length > 8
@@ -208,6 +206,8 @@ class GUI:
                                 if event_withdraw == "Back":
                                     break
                                 if event_withdraw == "Enter":
+                                    isWithDraw = True
+                                    window_withdraw.un_hide()
                                     import random
                                     fileExtension = values["USERNAME"] + ".txt"
                                     fullname, balance = self.BalanceAccount(fileExtension)
@@ -218,11 +218,38 @@ class GUI:
                                         print("Thanks for using the service. Have a great day!!!")
                                     print(exchangeCurr)
                                     remainderAmount = balanceAmount - withdrawAmount
-                                    self.Bank.Loading()
+                                    window_withdraw.hide()
+                                    self.Bank.Loading("GUI")
                                     self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
                                     self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
                                     self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
+                                    process, window_func_process = ProcessLoading(sg)
+                                    if process:
+                                        layout_process = [
+                                            [sg.Text("Please take money beside you before using another service")],
+                                            [sg.Text("Do you want to withdraw again?")],
+                                            [sg.Button("Yes"), sg.Button("No")]
+                                        ]
 
+                                        window_process = sg.Window("Process", layout_process, element_justification="center")
+                                        while True:
+                                            window_func_process.hide()
+                                            window_withdraw.hide()
+                                            event_process, values_process = window_process.read()
+                                            if event_process == "Yes":
+                                                window_withdraw["MONEY"].update("0")
+                                                window_withdraw["MONEY"].set_focus(True)
+                                                length = 0
+                                                break
+                                            if event_process == "No":
+                                                isWithDraw = False
+                                                break
+                                        window_withdraw.un_hide()
+                                        window_process.close()
+                                        window_func_process.close()
+                                    if not isWithDraw:
+                                        break
+                                        
                                 if self.ValidateNumber(event_withdraw, values_withdraw, window_withdraw, "MONEY") == "0":
                                     window_withdraw["OUTPUT"].update("Using number only")
                                     continue
@@ -259,8 +286,6 @@ class GUI:
                                 else:
                                     length += 1
                                 self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
-                                
-
 
                             window_service.un_hide()
                             window_withdraw.close()

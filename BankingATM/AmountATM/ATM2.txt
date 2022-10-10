@@ -1,2 +1,2 @@
 ATM Văn Lang Đặng Thùy Trâm
-CurrentAmount: 4,000,000
+CurrentAmount: 5,000,000

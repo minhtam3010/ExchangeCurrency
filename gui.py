@@ -1,13 +1,15 @@
-from operator import le
-from tkinter import E
 import PySimpleGUI as sg
+
+from BankingATM.BankingTracsaction import Banking
 
 class GUI:
 
     def __init__(self):
         self.hold = "0"
+        self.Bank = Banking()
 
     def getUsersFile(self):
+        # users_file = open("./BankingATM/users/user.txt", "r+")
         users_file = open("./BankingATM/users/user.txt", "r+")
         users = {}
         for user in users_file:
@@ -16,7 +18,6 @@ class GUI:
         return users_file, users 
 
     def ValidateUser(self, users, username, pin):
-        return True
         for username_file, pin_file in users.items():
             if pin == pin_file and username == username_file[:len(username_file)-4]:
                 return True
@@ -34,7 +35,8 @@ class GUI:
         return fullName, balanceAccount
 
     def CreateAccount(self, users_file, users, username, nameAccount, userAccount, deposit):
-        for user in users.values():
+        for user in users.keys():
+            print(user[:len(user)-4])
             if username == user[:len(user)-4]:
                 return False
         fileExtension = username + ".txt"
@@ -205,6 +207,22 @@ class GUI:
 
                                 if event_withdraw == "Back":
                                     break
+                                if event_withdraw == "Enter":
+                                    import random
+                                    fileExtension = values["USERNAME"] + ".txt"
+                                    fullname, balance = self.BalanceAccount(fileExtension)
+                                    fullname = fullname[11:]
+                                    balanceAmount, withdrawAmount = self.Bank.filterAmount(balance, values_withdraw["MONEY"])
+                                    exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount)
+                                    if len(exchangeCurr) == 0:
+                                        print("Thanks for using the service. Have a great day!!!")
+                                    print(exchangeCurr)
+                                    remainderAmount = balanceAmount - withdrawAmount
+                                    self.Bank.Loading()
+                                    self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                    self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
+                                    self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
+
                                 if self.ValidateNumber(event_withdraw, values_withdraw, window_withdraw, "MONEY") == "0":
                                     window_withdraw["OUTPUT"].update("Using number only")
                                     continue
@@ -221,9 +239,7 @@ class GUI:
                                     window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
                                     isNotWritten = False
                                     canDelete = True
-                                    # length = 1
-                                    # continue
-                                # print(self.hold, values_withdraw["MONEY"])
+
                                 split_hold = self.hold.split(",")
                                 split_values_withdraw = values_withdraw["MONEY"].split(",")
                                 res_hold = "".join(split_hold)

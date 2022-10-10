@@ -1,4 +1,5 @@
 from operator import le
+from tkinter import E
 import PySimpleGUI as sg
 
 class GUI:
@@ -15,6 +16,7 @@ class GUI:
         return users_file, users 
 
     def ValidateUser(self, users, username, pin):
+        return True
         for username_file, pin_file in users.items():
             if pin == pin_file and username == username_file[:len(username_file)-4]:
                 return True
@@ -47,16 +49,44 @@ class GUI:
         return
 
     def addComma(self, event, values, window, length):
-        if length == 1:
-            window[event].update(values[:len(values)-2])
-        
-        if length == 3:
-            window[event].update(values[:len(values) - 1] + "," + values[-1])
+        split_values = values.split(",")
+        length_values = len(split_values)
+        res = ""
+        if length == 4:
+            if length_values > 1:
+                for i in range(length_values):
+                    res += split_values[i][0] + "," + split_values[i][1:]
+                window[event].update(res)
+            else:
+                window[event].update(values[0] + "," + values[1:])
+        elif length > 4 and length <= 6:
+            # print(length, values[:-5], values[-4], values[-5], values[-3:], values)
+            if length_values > 2:
+                res = split_values[0]
+                for i in range(1, length_values):
+                    res += split_values[i][0] + "," + split_values[i][1:]
+                window[event].update(res)
+            else:
+                window[event].update(values[:-5] + values[-4] + values[-5] + values[-3:])
+
+    def deleteComma(self, event, window, values):
+        split_values = values.split(",")
+        res_join = "".join(split_values)
+        count = 0
+        res = ""
+        for i in res_join[::-1]:
+            if count == 3:
+                res += "," + i
+                count = 1
+            else:
+                count += 1
+                res += i
+        window[event].update(res[::-1])
 
 
     def ValidateNumber(self, event, values, window, key):
         # 0: use non-numeric; 1: length > 8
-        if event == key and values[key] and values[key][-1] not in ('0123456789'):
+        if event == key and values[key] and values[key][-1] not in ('0123456789,'):
             window[key].update(values[key][:-1])
             return "0"
         elif len(values[key]) > 8 and key == "PIN_PERSONAL":
@@ -191,27 +221,28 @@ class GUI:
                                     window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
                                     isNotWritten = False
                                     canDelete = True
-                                    length = 1
-                                    continue
-
-                                if self.hold == "":
-                                    self.hold = values_withdraw["MONEY"]
-                                elif length == 1 and self.hold == values_withdraw["MONEY"]:
-                                    print(self.hold, values_withdraw["MONEY"])
-                                    self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
-                                    length = 2
-                                    continue
-                                elif self.hold == values_withdraw["MONEY"]:
-                                    length -= 1
+                                    # length = 1
+                                    # continue
+                                # print(self.hold, values_withdraw["MONEY"])
+                                split_hold = self.hold.split(",")
+                                split_values_withdraw = values_withdraw["MONEY"].split(",")
+                                res_hold = "".join(split_hold)
+                                res_values = "".join(split_values_withdraw)
+                                if res_hold == res_values:
+                                    if length == 0:
+                                        length = 4
+                                    else:
+                                        length -= 1
+                                    self.deleteComma(event_withdraw, window_withdraw, values_withdraw["MONEY"])
                                     self.hold = values_withdraw["MONEY"][:-1]
                                     continue
                                 else:
                                     self.hold = values_withdraw["MONEY"][:-1]
-                                if length == 3:
-                                    self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
-                                    length = 1
+                                if length == 6:
+                                    length = 4
                                 else:
                                     length += 1
+                                self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
                                 
 
 

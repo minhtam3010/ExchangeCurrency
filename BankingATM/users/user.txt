@@ -1,5 +1,4 @@
 30102002:user1.txt
 20102001:user2.txt
 25122002:user3.txt
-30102002:minhtam3010.txt
 28032011:minhthu2803.txt

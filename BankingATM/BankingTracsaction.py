@@ -2,6 +2,7 @@ from BankingATM.FileExtraction import MyFileHandling
 
 class Banking(MyFileHandling):
 
+
     def GetUnitOfMoneyInATM(self, filename):
         currency_file = open(filename, "a+")
         currency_file.seek(0)
@@ -89,31 +90,36 @@ class Banking(MyFileHandling):
         return currency_dict, res_currency
 
     def ExchangeCurrencyFunc(self, number):
-        currency_file, currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
-        amountAtm_file, res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
-        currentAmountATM, _ = self.filterAmount(res[1], "")
-
-        location = res[0]
-        if currentAmountATM == 0:
-            print("ATM Machine " + location + " is running out of money.")
-        elif currentAmountATM < number:
+        
+        if self.currentAmountATM == 0:
+            print("ATM Machine " + self.location + " is running out of money.")
+        elif self.currentAmountATM < number:
             # TODO: Handle IF machine doesn't have adequate money
-            print("This ATM machine " + location + " doesn't have adequate money for this transaction!!!")
+            print("This ATM machine " + self.location + " doesn't have adequate money for this transaction!!!")
             smartATM_service = input("Do you want to wait for the automated pulling money process from another location?: ")
             if smartATM_service.upper() == "Y":
                 print("Process is loading.......")
-                second_location = self.AutomatedPullMoney(currency_file, amountAtm_file, currency_dict, number - currentAmountATM, res)
-                self.Pending(location, second_location)
-                currency_file, currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
-                amountAtm_file, res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
+                second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res)
+                self.Pending(self.location, second_location)
+                self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
+                self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
             else:
                 return {}, number
         
 
-        currency_dict, res_currency = self.Calculation(number, currency_dict)
-        self.ProcessAmountATM(currency_file, amountAtm_file, number, currency_dict, res)
-        return res_currency, location
+        self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
+        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res)
+        return res_currency, self.location
     
+    def RequestPullingMoney(self, number, currentAmountATM):
+        second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res)
+        # self.Pending(location, second_location)
+        self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
+        self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
+        self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
+        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res)
+        return res_currency, self.location
+
     def HistoryTransaction(self, file, grant, usr, beforeAmount, afterAmount, money):
         # grant 0: ATM-admin 1: user
         current_time = self.today.strftime("%H:%M:%S")

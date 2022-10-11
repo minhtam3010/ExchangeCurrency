@@ -4,6 +4,10 @@ class MyFileHandling(object):
         from datetime import datetime
         self.today = datetime.today()
         self.day = self.today.strftime("%d/%m/%Y")
+        self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
+        self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
+        self.currentAmountATM, _ = self.filterAmount(self.res[1], "")
+        self.location = self.res[0]
 
     def openFile(self, pin):
         users_file = open("./BankingATM/users/user.txt", "a+")

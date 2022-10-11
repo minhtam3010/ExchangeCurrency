@@ -1,7 +1,8 @@
+from turtle import color
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
-from gui.processLoading import ProcessLoading
+from gui.processLoading import ProcessLoading, ProcessLoading2, mySleep
 
 class GUI:
 
@@ -94,7 +95,7 @@ class GUI:
             return "1"
         return ""
 
-    def Window(self):
+    def Window(self, locationATM):
         layout = [
             [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
             [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", password_char="*", enable_events=True)],
@@ -163,11 +164,12 @@ class GUI:
                 if isValidated:
                     sg.popup("Login successfully", title="Congrats")
                     layout_service = [
+                        [sg.Text("Welcome " + locationATM, background_color="black", font="Times", size=(41, 2), justification="center")],
                         [sg.Button("CHECK BALANCE", size=(15, 2)), sg.Button("TRANSFERING", size=(15, 2))],
                         [sg.Button("DEPOSIT", size=(15, 2)), sg.Button("WITHDRAW", size=(15, 2))],
                         [sg.Exit(size=(41, 2))]
                     ]
-                    window_service = sg.Window("Services", layout_service, element_justification="left")
+                    window_service = sg.Window("Services", layout_service, element_justification="center")
                     
                     while True:
                         window.hide()
@@ -189,113 +191,218 @@ class GUI:
                             window_service.un_hide()
                             window_balance.close()
                         elif event_service == "WITHDRAW":
-                            layout_withdraw = [
-                                [sg.Text("Money:"), sg.Input(key="MONEY", enable_events=True), sg.Button("Enter", size=(10, 1))],
-                                [sg.Button("Back", size=(35, 1))],
-                                [sg.Text(key="OUTPUT")]
-                            ]
-                            window_withdraw = sg.Window("Withdraw", layout_withdraw, element_justification="center", finalize=True)
-                            isNotWritten = True
-                            canDelete = False
-                            window_withdraw["MONEY"].update("0")
-                            length = 0
-                            while True:
-                                window_service.hide()
-                                event_withdraw, values_withdraw = window_withdraw.read()
+                            isRefused = False
+                            if self.Bank.currentAmountATM == 0:
+                                layout_out_service = [
+                                    [sg.Text("We're running out of balance at the moment. Please come back later", text_color="red", background_color="black", size=(40, 2), justification="center")],
+                                    [sg.Button("Back", size=(15, 1.2))]
+                                ]
 
-                                if event_withdraw == "Back":
-                                    break
-                                if event_withdraw == "Enter":
-                                    isWithDraw = True
-                                    window_withdraw.un_hide()
-                                    import random
-                                    fileExtension = values["USERNAME"] + ".txt"
-                                    fullname, balance = self.BalanceAccount(fileExtension)
-                                    fullname = fullname[11:]
-                                    balanceAmount, withdrawAmount = self.Bank.filterAmount(balance, values_withdraw["MONEY"])
-                                    exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount)
-                                    if len(exchangeCurr) == 0:
-                                        print("Thanks for using the service. Have a great day!!!")
-                                    print(exchangeCurr)
-                                    remainderAmount = balanceAmount - withdrawAmount
-                                    window_withdraw.hide()
-                                    self.Bank.Loading("GUI")
-                                    self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
-                                    self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
-                                    self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
-                                    process, window_func_process = ProcessLoading(sg)
-                                    if process:
-                                        layout_process = [
-                                            [sg.Text("Please take money beside you before using another service")],
-                                            [sg.Text("Do you want to withdraw again?")],
+                                window_out_service = sg.Window("Alert", layout_out_service, element_justification="center")
+                                while True:
+                                    event_out_serive, _ = window_out_service.read()
+                                    if event_out_serive == "Back":
+                                        break
+                                window_out_service.close()
+                            else:
+                                isPulled = False
+                                layout_withdraw = [
+                                    [sg.Text("Money:"), sg.Input(key="MONEY", enable_events=True), sg.Button("Enter", size=(10, 1))],
+                                    [sg.Button("Back", size=(35, 1))],
+                                    [sg.Text(key="OUTPUT")]
+                                ]
+                                window_withdraw = sg.Window("Withdraw", layout_withdraw, element_justification="center", finalize=True)
+                                isNotWritten = True
+                                canDelete = False
+                                window_withdraw["MONEY"].update("0")
+                                length = 0
+                                while True:
+                                    window_service.hide()
+                                    event_withdraw, values_withdraw = window_withdraw.read()
+                                    if event_withdraw == "Back":
+                                        break
+                                    if event_withdraw == "Enter":
+                                        isWithDraw = True
+                                        window_withdraw.un_hide()
+                                        import random
+                                        fileExtension = values["USERNAME"] + ".txt"
+                                        fullname, balance = self.BalanceAccount(fileExtension)
+                                        fullname = fullname[11:]
+                                        balanceAmount, withdrawAmount = self.Bank.filterAmount(balance, values_withdraw["MONEY"])
+                                        if self.Bank.currentAmountATM < withdrawAmount:
+                                            window_withdraw.hide()
+                                            _, window_func_process = ProcessLoading(sg, "Problem")
+                                            window_func_process.close()
+                                            layout_pulling = [
+                                                [sg.Text("Sorry! We have some problem!!!", text_color="red", background_color="black", size=(80, 2), justification="center")],
+                                                [sg.Text("We apologize that we don't have adequate amount of money for withdrawing", text_color="#00ffff", background_color="black", size=(80, 2), justification="center")],
+                                                [sg.Text("Do you want to experience PULLING MONEY AUTOMATION FROM ANOTHER LOCATION?", text_color="#00ffff", background_color="black", size=(80, 2), justification="center")],
+                                                [sg.Button("Yes", size=(15, 1.2)), sg.Button("No", size=(15, 1.2))]
+                                            ]
+                                            window_pulling = sg.Window("Error", layout_pulling, element_justification="center")
+                                            while True:
+                                                event_pulling, _ = window_pulling.read()
+                                                if event_pulling == "Yes":
+                                                    window_pulling.hide()
+                                                    _, window_process2 = ProcessLoading2(sg, "Văn Lang Đặng Thùy Trâm")
+                                                    exchangeCurr, location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM)
+                                                    isPulled = True
+                                                    window_process2.close()
+                                                    break
+                                                else:
+                                                    isRefused = True
+                                                    break
+                                            window_pulling.close()
+
+                                        else:
+                                            exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount)
+                                        if isRefused:
+                                            break
+                                        remainderAmount = balanceAmount - withdrawAmount
+                                        window_withdraw.hide()
+                                        self.Bank.Loading("GUI")
+                                        self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                        self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
+                                        
+                                        # Printing Bill
+                                        layout_bill = [
+                                            [sg.Text("Annoucement")],
+                                            [sg.Text("Do you want to print bill ?")],
+                                            [sg.Text("In order to save environment. We recommend that you need to print with some cases")],
                                             [sg.Button("Yes"), sg.Button("No")]
                                         ]
 
-                                        window_process = sg.Window("Process", layout_process, element_justification="center")
+                                        window_bill = sg.Window("Annoucement", layout_bill, element_justification="c")
                                         while True:
-                                            window_func_process.hide()
-                                            window_withdraw.hide()
-                                            event_process, values_process = window_process.read()
-                                            if event_process == "Yes":
-                                                window_withdraw["MONEY"].update("0")
-                                                window_withdraw["MONEY"].set_focus(True)
-                                                length = 0
+                                            event_bill, _ = window_bill.read()
+                                            if event_bill == "Yes":
+                                                self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
                                                 break
-                                            if event_process == "No":
-                                                isWithDraw = False
+                                            else:
                                                 break
-                                        window_withdraw.un_hide()
-                                        window_process.close()
-                                        window_func_process.close()
-                                    if not isWithDraw:
-                                        break
-                                        
-                                if self.ValidateNumber(event_withdraw, values_withdraw, window_withdraw, "MONEY") == "0":
-                                    window_withdraw["OUTPUT"].update("Using number only")
-                                    continue
-                                if len(values_withdraw["MONEY"]) == 0:
-                                    canDelete = True
-                                if canDelete and len(values_withdraw["MONEY"]) == 0:
-                                    isNotWritten = True
-                                    window_withdraw["MONEY"].update("0")
-                                    canDelete = False
-                                    length = 0
-                                    self.hold = ""
-                                    continue
-                                elif isNotWritten:
-                                    window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
-                                    isNotWritten = False
-                                    canDelete = True
+                                        window_bill.close()
+                                        if isPulled:
+                                            layout_process = [
+                                                [sg.Text("Please take money beside you before using another service")],
+                                                [sg.Text("Do you want to withdraw again?")],
+                                                [sg.Button("Yes"), sg.Button("No")]
+                                            ]
 
-                                split_hold = self.hold.split(",")
-                                split_values_withdraw = values_withdraw["MONEY"].split(",")
-                                res_hold = "".join(split_hold)
-                                res_values = "".join(split_values_withdraw)
-                                if res_hold == res_values:
-                                    if length == 0:
+                                            window_process = sg.Window("Process", layout_process, element_justification="center")
+                                            while True:
+                                                event_process, _ = window_process.read()
+                                                if event_process == "Yes":
+                                                    window_withdraw["MONEY"].update("0")
+                                                    window_withdraw["MONEY"].set_focus(True)
+                                                    length = 0
+                                                    break
+                                                if event_process == "No":
+                                                    isWithDraw = False
+                                                    break
+                                            window_withdraw.un_hide()
+                                            window_process.close()
+                                        else:
+                                            process, window_func_process = ProcessLoading(sg)
+                                            if process:
+                                                layout_process = [
+                                                    [sg.Text("Please take money beside you before using another service")],
+                                                    [sg.Text("Do you want to withdraw again?")],
+                                                    [sg.Button("Yes"), sg.Button("No")]
+                                                ]
+
+                                                window_process = sg.Window("Process", layout_process, element_justification="center")
+                                                while True:
+                                                    window_func_process.hide()
+                                                    window_withdraw.hide()
+                                                    event_process, _ = window_process.read()
+                                                    if event_process == "Yes":
+                                                        window_withdraw["MONEY"].update("0")
+                                                        window_withdraw["MONEY"].set_focus(True)
+                                                        length = 0
+                                                        break
+                                                    if event_process == "No":
+                                                        isWithDraw = False
+                                                        break
+                                                window_withdraw.un_hide()
+                                                window_process.close()
+                                                window_func_process.close()
+                                        if not isWithDraw:
+                                            break
+                                    if isRefused:
+                                        break
+
+                                    if self.ValidateNumber(event_withdraw, values_withdraw, window_withdraw, "MONEY") == "0":
+                                        window_withdraw["OUTPUT"].update("Using number only")
+                                        continue
+                                    if len(values_withdraw["MONEY"]) == 0:
+                                        canDelete = True
+                                    if canDelete and len(values_withdraw["MONEY"]) == 0:
+                                        isNotWritten = True
+                                        window_withdraw["MONEY"].update("0")
+                                        canDelete = False
+                                        length = 0
+                                        self.hold = ""
+                                        continue
+                                    elif isNotWritten:
+                                        window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
+                                        isNotWritten = False
+                                        canDelete = True
+
+                                    split_hold = self.hold.split(",")
+                                    split_values_withdraw = values_withdraw["MONEY"].split(",")
+                                    res_hold = "".join(split_hold)
+                                    res_values = "".join(split_values_withdraw)
+                                    if res_hold == res_values:
+                                        if length == 0:
+                                            length = 4
+                                        else:
+                                            length -= 1
+                                        self.deleteComma(event_withdraw, window_withdraw, values_withdraw["MONEY"])
+                                        self.hold = values_withdraw["MONEY"][:-1]
+                                        continue
+                                    else:
+                                        self.hold = values_withdraw["MONEY"][:-1]
+                                    if length == 6:
                                         length = 4
                                     else:
-                                        length -= 1
-                                    self.deleteComma(event_withdraw, window_withdraw, values_withdraw["MONEY"])
-                                    self.hold = values_withdraw["MONEY"][:-1]
-                                    continue
-                                else:
-                                    self.hold = values_withdraw["MONEY"][:-1]
-                                if length == 6:
-                                    length = 4
-                                else:
-                                    length += 1
-                                self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
+                                        length += 1
+                                    self.addComma("MONEY", values_withdraw["MONEY"], window_withdraw, length)
 
-                            window_service.un_hide()
-                            window_withdraw.close()
+                                window_service.un_hide()
+                                window_withdraw.close()
                         elif event_service == "Exit":
                             window["PIN_PERSONAL"].update("")
                             window["USERNAME"].update("")
                             isExited = sg.popup_ok_cancel("Do u want to exit?", title="Alert")
                             if isExited == "OK":
+                                layout_thanks = [
+                                    [sg.Text("Thank you for using this service. Hope you have a lovely day!!!!", justification="center", enable_events=True, key="Tks", text_color="#00ffff", background_color="black")]
+                                ]
+                                window_thanks = sg.Window("GoodBye", layout_thanks)
+                                count = 0
+                                while True:
+                                    window_service.hide()
+                                    event_thanks, _ = window_thanks.read(timeout=10)
+                                    if mySleep(count, "goodbye"):
+                                        break
+                                    count += 1
+                                window_thanks.close()
                                 break
-
+                        
+                        if isRefused:
+                            layout_thanks = [
+                                [sg.Text("Thank you for using this service. Hope you have a lovely day!!!!", justification="center", enable_events=True, key="Tks", text_color="#00ffff", background_color="black")]
+                            ]
+                            window_thanks = sg.Window("GoodBye", layout_thanks)
+                            count = 0
+                            while True:
+                                window_service.hide()
+                                event_thanks, _ = window_thanks.read(timeout=10)
+                                if mySleep(count, "goodbye"):
+                                    break
+                                count += 1
+                            window_thanks.close()
+                            break
                     window.un_hide()
                     window_service.close()
                 else:
@@ -306,4 +413,4 @@ class GUI:
         users_file.close()
 
 app = GUI()
-app.Window()
+app.Window("ATM Văn Lang Quận 1")

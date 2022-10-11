@@ -2,7 +2,6 @@ from BankingATM.FileExtraction import MyFileHandling
 
 class Banking(MyFileHandling):
 
-
     def GetUnitOfMoneyInATM(self, filename):
         currency_file = open(filename, "a+")
         currency_file.seek(0)
@@ -28,7 +27,7 @@ class Banking(MyFileHandling):
                 res.append(each[15:])
         return amountATM_file, res
 
-    def ProcessAmountATM(self, currency_file, amountATM_file, amountATM, currency_dict, res):
+    def ProcessAmountATM(self, currency_file, amountATM_file, amountATM, currency_dict, res, access="gui"):
         currency_file.seek(0)
         amountATM_file.seek(0)
         currency_file.truncate()
@@ -39,8 +38,9 @@ class Banking(MyFileHandling):
         filter_amountATM, _ = self.filterAmount(res[1], "")
         amountATM = filter_amountATM - amountATM
         amountATM_file.write("CurrentAmount: " + self.filterNumber(amountATM))
-        currency_file.close()
-        amountATM_file.close()
+        if access == "console":
+            currency_file.close()
+            amountATM_file.close()
         
 
     def Pending(self, location, second_location):
@@ -62,14 +62,14 @@ class Banking(MyFileHandling):
             sleep(2)
         print("100%", flush=True)
 
-    def AutomatedPullMoney(self, currency_file, amountAtm_file, currency_dict, numberBorrowed, location):
+    def AutomatedPullMoney(self, currency_file, amountAtm_file, currency_dict, numberBorrowed, location, access="gui"):
         second_atm_file, second_location = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM2.txt")
         second_currency_file, second_currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM2.txt")
         second_currency_dict, res_currency = self.Calculation(numberBorrowed, second_currency_dict)
-        self.ProcessAmountATM(second_currency_file, second_atm_file, numberBorrowed, second_currency_dict, second_location)
+        self.ProcessAmountATM(second_currency_file, second_atm_file, numberBorrowed, second_currency_dict, second_location, access)
         for key, value in res_currency.items():
             currency_dict[key] += value
-        self.ProcessAmountATM(currency_file, amountAtm_file, -numberBorrowed, currency_dict, location)
+        self.ProcessAmountATM(currency_file, amountAtm_file, -numberBorrowed, currency_dict, location, access)
         return second_location[0]
 
     def Calculation(self, number, currency_dict):
@@ -89,7 +89,7 @@ class Banking(MyFileHandling):
                     currencyList.pop(0)
         return currency_dict, res_currency
 
-    def ExchangeCurrencyFunc(self, number):
+    def ExchangeCurrencyFunc(self, number, access="gui"):
         
         if self.currentAmountATM == 0:
             print("ATM Machine " + self.location + " is running out of money.")
@@ -99,7 +99,7 @@ class Banking(MyFileHandling):
             smartATM_service = input("Do you want to wait for the automated pulling money process from another location?: ")
             if smartATM_service.upper() == "Y":
                 print("Process is loading.......")
-                second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res)
+                second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res, access)
                 self.Pending(self.location, second_location)
                 self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
                 self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
@@ -108,16 +108,16 @@ class Banking(MyFileHandling):
         
 
         self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
-        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res)
+        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
         return res_currency, self.location
     
-    def RequestPullingMoney(self, number, currentAmountATM):
-        second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res)
+    def RequestPullingMoney(self, number, currentAmountATM, access="gui"):
+        second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res, access)
         # self.Pending(location, second_location)
         self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
         self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
         self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
-        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res)
+        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
         return res_currency, self.location
 
     def HistoryTransaction(self, file, grant, usr, beforeAmount, afterAmount, money):
@@ -128,7 +128,7 @@ class Banking(MyFileHandling):
         elif grant == 1:
             file.write(current_time + " (" + self.day + ")" + ": " + "\n\t+ " + "Money: " + str(money) + "\n\t+ " + "Before Money: " + str(beforeAmount) + "\n\t+ " + "After Amount: " + str(afterAmount) + "\n")
     
-    def processHistory(self, usrExtension, currentAmount, remainderAmount, userInput):
+    def processHistory(self, usrExtension, currentAmount, remainderAmount, userInput, access="gui"):
         fileDay, currentDay = self.getCurrentDay()
         with open("./BankingATM/HistoryTransaction/historyATM.txt", "a") as history_atm:
             if self.day != currentDay:
@@ -137,7 +137,8 @@ class Banking(MyFileHandling):
             self.HistoryTransaction(history_atm, 0, usrExtension, currentAmount, remainderAmount, userInput)
         with open("./BankingATM/HistoryTransaction/" + usrExtension + "_History.txt", "a") as history_usr:
             self.HistoryTransaction(history_usr, 1, usrExtension, currentAmount, remainderAmount, userInput)
-        fileDay.close()
+        if access == "console":
+            fileDay.close()
 
     def printBillTransaction(self, date, time, location, receipt, card_no, fullname, amount, curent_amount):
         from pathlib import Path
@@ -153,21 +154,25 @@ class ExchangeCurrency(object):
     def Running(self):
         import random
         pin = input("Enter your PIN: ")
-        bankingTransaction = Banking()
-        f, usrExtension, pin = bankingTransaction.openFile(pin)
-        userName, currentAmount = bankingTransaction.getCurrentAmount(f)
-        userInput = input("Please enter money: ")
-        currentAmount, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
-        while not (bankingTransaction.Check(currentAmount, userInput)):
-            userInput = input("Your amount value greater than the current value that u have: ")
-            _, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
-        exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput)
-        if len(exchangeCurr) == 0:
-            print("Thanks for using the service. Have a great day!!!")
-            return
-        print(exchangeCurr)
-        remainderAmount = currentAmount - userInput
-        bankingTransaction.Loading()
-        bankingTransaction.EditFile(f, userName, remainderAmount)
-        bankingTransaction.printBillTransaction(bankingTransaction.day, bankingTransaction.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), pin[:5], userName, bankingTransaction.filterNumber(userInput), bankingTransaction.filterNumber(remainderAmount))
-        bankingTransaction.processHistory(usrExtension, currentAmount, remainderAmount, userInput)
+        amount = 1
+        while amount != 0:
+            bankingTransaction = Banking()
+            print(amount)
+            f, usrExtension, pin = bankingTransaction.openFile(pin)
+            userName, currentAmount = bankingTransaction.getCurrentAmount(f)
+            userInput = input("Please enter money: ")
+            currentAmount, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
+            while not (bankingTransaction.Check(currentAmount, userInput)):
+                userInput = input("Your amount value greater than the current value that u have: ")
+                _, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
+            exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput, "console")
+            if len(exchangeCurr) == 0:
+                print("Thanks for using the service. Have a great day!!!")
+                return
+            print(exchangeCurr)
+            remainderAmount = currentAmount - userInput
+            bankingTransaction.Loading()
+            bankingTransaction.EditFile(f, userName, remainderAmount)
+            bankingTransaction.printBillTransaction(bankingTransaction.day, bankingTransaction.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), pin[:5], userName, bankingTransaction.filterNumber(userInput), bankingTransaction.filterNumber(remainderAmount))
+            bankingTransaction.processHistory(usrExtension, currentAmount, remainderAmount, userInput)
+            amount = bankingTransaction.currentAmountATM

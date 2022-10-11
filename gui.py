@@ -1,4 +1,3 @@
-from turtle import color
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
@@ -157,6 +156,8 @@ class GUI:
                 window.un_hide()
                 window2.close()
             elif event == "Enter":
+                isRefused = False
+                isRunningOut = False
                 if (len(values["PIN_PERSONAL"]) != 8):
                     window["OUTPUT"].update("Your PIN must have 8 digits!!!")
                     continue
@@ -173,7 +174,7 @@ class GUI:
                     
                     while True:
                         window.hide()
-                        event_service, value_service = window_service.read()
+                        event_service, _ = window_service.read()
                         if event_service == "CHECK BALANCE":
                             fullName, balance = self.BalanceAccount(values["USERNAME"] + ".txt")
                             layout_balance = [
@@ -191,7 +192,6 @@ class GUI:
                             window_service.un_hide()
                             window_balance.close()
                         elif event_service == "WITHDRAW":
-                            isRefused = False
                             if self.Bank.currentAmountATM == 0:
                                 layout_out_service = [
                                     [sg.Text("We're running out of balance at the moment. Please come back later", text_color="red", background_color="black", size=(40, 2), justification="center")],
@@ -217,6 +217,7 @@ class GUI:
                                 window_withdraw["MONEY"].update("0")
                                 length = 0
                                 while True:
+                                    self.Bank = Banking()
                                     window_service.hide()
                                     event_withdraw, values_withdraw = window_withdraw.read()
                                     if event_withdraw == "Back":
@@ -244,8 +245,33 @@ class GUI:
                                                 event_pulling, _ = window_pulling.read()
                                                 if event_pulling == "Yes":
                                                     window_pulling.hide()
+                                                    remainderAmount = balanceAmount - withdrawAmount
+                                                    window_withdraw.hide()
+                                                    self.Bank.Loading("GUI")
+                                                    self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                                    self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
+                                                    exchangeCurr, location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM, "console")
+                                                    # Printing Bill
+                                                    layout_bill = [
+                                                        [sg.Text("Annoucement")],
+                                                        [sg.Text("Do you want to print bill ?")],
+                                                        [sg.Text("In order to save environment. We recommend that you need to print with some cases")],
+                                                        [sg.Button("Yes"), sg.Button("No")]
+                                                    ]
+
+                                                    window_bill = sg.Window("Annoucement", layout_bill, element_justification="c")
+                                                    while True:
+                                                        event_bill, _ = window_bill.read()
+                                                        if event_bill == "Yes":
+                                                            self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
+                                                            break
+                                                        else:
+                                                            break
+                                                    window_bill.close()
+                                                    
                                                     _, window_process2 = ProcessLoading2(sg, "Văn Lang Đặng Thùy Trâm")
-                                                    exchangeCurr, location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM)
+                                                    self.Bank.currentAmountATM = 0
+                                                    isRunningOut = True
                                                     isPulled = True
                                                     window_process2.close()
                                                     break
@@ -255,32 +281,10 @@ class GUI:
                                             window_pulling.close()
 
                                         else:
-                                            exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount)
+                                            exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount, "console")
                                         if isRefused:
                                             break
-                                        remainderAmount = balanceAmount - withdrawAmount
-                                        window_withdraw.hide()
-                                        self.Bank.Loading("GUI")
-                                        self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
-                                        self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
                                         
-                                        # Printing Bill
-                                        layout_bill = [
-                                            [sg.Text("Annoucement")],
-                                            [sg.Text("Do you want to print bill ?")],
-                                            [sg.Text("In order to save environment. We recommend that you need to print with some cases")],
-                                            [sg.Button("Yes"), sg.Button("No")]
-                                        ]
-
-                                        window_bill = sg.Window("Annoucement", layout_bill, element_justification="c")
-                                        while True:
-                                            event_bill, _ = window_bill.read()
-                                            if event_bill == "Yes":
-                                                self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
-                                                break
-                                            else:
-                                                break
-                                        window_bill.close()
                                         if isPulled:
                                             layout_process = [
                                                 [sg.Text("Please take money beside you before using another service")],
@@ -302,6 +306,28 @@ class GUI:
                                             window_withdraw.un_hide()
                                             window_process.close()
                                         else:
+                                            remainderAmount = balanceAmount - withdrawAmount
+                                            window_withdraw.hide()
+                                            self.Bank.Loading("GUI")
+                                            self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                            self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
+                                            # Printing Bill
+                                            layout_bill = [
+                                                [sg.Text("Annoucement")],
+                                                [sg.Text("Do you want to print bill ?")],
+                                                [sg.Text("In order to save environment. We recommend that you need to print with some cases")],
+                                                [sg.Button("Yes"), sg.Button("No")]
+                                            ]
+
+                                            window_bill = sg.Window("Annoucement", layout_bill, element_justification="c")
+                                            while True:
+                                                event_bill, _ = window_bill.read()
+                                                if event_bill == "Yes":
+                                                    self.Bank.printBillTransaction(self.Bank.day, self.Bank.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), values["PIN_PERSONAL"][:5], fullname[11:], self.Bank.filterNumber(withdrawAmount), self.Bank.filterNumber(remainderAmount))
+                                                    break
+                                                else:
+                                                    break
+                                            window_bill.close()
                                             process, window_func_process = ProcessLoading(sg)
                                             if process:
                                                 layout_process = [
@@ -318,6 +344,7 @@ class GUI:
                                                     if event_process == "Yes":
                                                         window_withdraw["MONEY"].update("0")
                                                         window_withdraw["MONEY"].set_focus(True)
+                                                        isNotWritten = True
                                                         length = 0
                                                         break
                                                     if event_process == "No":
@@ -327,6 +354,8 @@ class GUI:
                                                 window_process.close()
                                                 window_func_process.close()
                                         if not isWithDraw:
+                                            break
+                                        if isRunningOut:
                                             break
                                     if isRefused:
                                         break

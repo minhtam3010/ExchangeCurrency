@@ -1,7 +1,9 @@
+from ast import Continue
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
 from gui.processLoading import ProcessLoading, ProcessLoading2, mySleep
+from show_money import ShowMoney
 
 class GUI:
 
@@ -216,6 +218,7 @@ class GUI:
                                 canDelete = False
                                 window_withdraw["MONEY"].update("0")
                                 length = 0
+                                isPrinted = False
                                 while True:
                                     self.Bank = Banking()
                                     window_service.hide()
@@ -223,6 +226,7 @@ class GUI:
                                     if event_withdraw == "Back":
                                         break
                                     if event_withdraw == "Enter":
+                                        showMoney = ShowMoney(values_withdraw["MONEY"])
                                         isWithDraw = True
                                         window_withdraw.un_hide()
                                         import random
@@ -296,13 +300,20 @@ class GUI:
                                             while True:
                                                 event_process, _ = window_process.read()
                                                 if event_process == "Yes":
+                                                    window_showMoney = showMoney.Money(exchangeCurr)
                                                     window_withdraw["MONEY"].update("0")
                                                     window_withdraw["MONEY"].set_focus(True)
                                                     length = 0
+                                                    canDelete = False
+                                                    isNotWritten = True
+                                                    isPrinted = True
+                                                    self.hold = ""
                                                     break
-                                                if event_process == "No":
+                                                elif event_process == "No":
+                                                    window_showMoney = showMoney.Money(exchangeCurr)
                                                     isWithDraw = False
                                                     break
+                                            window_showMoney.close()
                                             window_withdraw.un_hide()
                                             window_process.close()
                                         else:
@@ -315,7 +326,7 @@ class GUI:
                                             layout_bill = [
                                                 [sg.Text("Annoucement")],
                                                 [sg.Text("Do you want to print bill ?")],
-                                                [sg.Text("In order to save environment. We recommend that you need to print with some cases")],
+                                                [sg.Text("In order to save environment. We recommend that you need to print in some cases")],
                                                 [sg.Button("Yes"), sg.Button("No")]
                                             ]
 
@@ -342,17 +353,24 @@ class GUI:
                                                     window_withdraw.hide()
                                                     event_process, _ = window_process.read()
                                                     if event_process == "Yes":
+                                                        window_showMoney = showMoney.Money(exchangeCurr)
                                                         window_withdraw["MONEY"].update("0")
                                                         window_withdraw["MONEY"].set_focus(True)
-                                                        isNotWritten = True
                                                         length = 0
+                                                        canDelete = False
+                                                        isNotWritten = True
+                                                        isPrinted = True
+                                                        self.hold = ""
                                                         break
                                                     if event_process == "No":
+                                                        window_showMoney = showMoney.Money(exchangeCurr)
                                                         isWithDraw = False
                                                         break
                                                 window_withdraw.un_hide()
                                                 window_process.close()
                                                 window_func_process.close()
+                                                window_showMoney.close()
+
                                         if not isWithDraw:
                                             break
                                         if isRunningOut:
@@ -373,6 +391,9 @@ class GUI:
                                         self.hold = ""
                                         continue
                                     elif isNotWritten:
+                                        if isPrinted:
+                                            isPrinted = False
+                                            continue
                                         window_withdraw["MONEY"].update(values_withdraw["MONEY"][1])
                                         isNotWritten = False
                                         canDelete = True

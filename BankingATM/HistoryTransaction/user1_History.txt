@@ -262,3 +262,79 @@
 	+ Money: 6000000
 	+ Before Money: 408200000
 	+ After Amount: 402200000
+22:59:32 (11/10/2022): 
+	+ Money: 100000
+	+ Before Money: 402200000
+	+ After Amount: 402100000
+23:03:54 (11/10/2022): 
+	+ Money: 100000
+	+ Before Money: 402100000
+	+ After Amount: 402000000
+23:04:30 (11/10/2022): 
+	+ Money: 3500000
+	+ Before Money: 402000000
+	+ After Amount: 398500000
+23:08:56 (11/10/2022): 
+	+ Money: 300000
+	+ Before Money: 398500000
+	+ After Amount: 398200000
+23:09:21 (11/10/2022): 
+	+ Money: 3500000
+	+ Before Money: 398200000
+	+ After Amount: 394700000
+23:12:24 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 394700000
+	+ After Amount: 394500000
+23:14:23 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 394500000
+	+ After Amount: 394300000
+23:15:01 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 394300000
+	+ After Amount: 394100000
+23:19:40 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 394100000
+	+ After Amount: 393900000
+23:22:06 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 393900000
+	+ After Amount: 393700000
+23:28:11 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 393700000
+	+ After Amount: 393500000
+23:28:59 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 393500000
+	+ After Amount: 393300000
+23:29:20 (11/10/2022): 
+	+ Money: 2000000
+	+ Before Money: 393300000
+	+ After Amount: 391300000
+23:32:03 (11/10/2022): 
+	+ Money: 200000
+	+ Before Money: 391300000
+	+ After Amount: 391100000
+23:32:29 (11/10/2022): 
+	+ Money: 6000000
+	+ Before Money: 391100000
+	+ After Amount: 385100000
+23:35:21 (11/10/2022): 
+	+ Money: 6000000
+	+ Before Money: 385100000
+	+ After Amount: 379100000
+23:38:07 (11/10/2022): 
+	+ Money: 6000000
+	+ Before Money: 379100000
+	+ After Amount: 373100000
+23:40:08 (11/10/2022): 
+	+ Money: 6000000
+	+ Before Money: 373100000
+	+ After Amount: 367100000
+23:44:07 (11/10/2022): 
+	+ Money: 6000000
+	+ Before Money: 367100000
+	+ After Amount: 361100000

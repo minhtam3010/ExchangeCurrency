@@ -1,4 +1,3 @@
-from ast import Continue
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
@@ -125,22 +124,23 @@ class GUI:
                     [sg.Text("FULL NAME:"), sg.Input(key="FULLNAME")],
                     [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
                     [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", enable_events=True, password_char="*")],
-                    [sg.Text("DEPOSIT"), sg.Input(key="DEPOSIT")],
+                    [sg.Text("DEPOSIT"), sg.Input(key="DEPOSIT", enable_events=True)],
                     [sg.Button("Create", size=(10, 1.2)), sg.Button("Back", size=(10, 1.2))],
                     [sg.Text(key="OUTPUT")]
                 ]
-                window2 = sg.Window("Create an Account", layout2, element_justification="right")
-
+                window2 = sg.Window("Create an Account", layout2, element_justification="right", finalize=True)
+                isNotWritten = True
+                canDelete = False
+                window2["DEPOSIT"].update("0")
+                length = 0
+                isFull = False
+                once = True
                 while True:
                     window.hide()
                     event2, values2 = window2.read()
-                    if self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "0":
-                        window2["OUTPUT"].update("Please enter validate number!!!")
-                    elif self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "1":
-                        window2["OUTPUT"].update("The range of PIN is not acceptable more than 8 digits")
-
                     if event2 == sg.WIN_CLOSED or event2 == "Back":
                         window["PIN_PERSONAL"].update("")
+                        window["USERNAME"].update("")
                         break
                     elif event2 == "Create":
                         if (len(values2["PIN_PERSONAL"]) != 8):
@@ -155,6 +155,73 @@ class GUI:
                             continue
                         users_file.close()
                         break
+                    if self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "0":
+                        window2["OUTPUT"].update("Please enter validate number!!!")
+                        continue
+                    elif self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "1":
+                        window2["OUTPUT"].update("The range of PIN is not acceptable more than 8 digits")
+                        continue
+                    else:
+                        if len(values2["PIN_PERSONAL"]) == 8 and once:
+                            isFull = True
+                            once = False
+                        window2["OUTPUT"].update("")
+                    if len(values2["PIN_PERSONAL"]) != 8:
+                        window2["OUTPUT"].update("U need to complete PIN.")
+                        values2["DEPOSIT"] = "0"
+                        window2["DEPOSIT"].update("0")
+                        continue
+                    # elif len(values2["PIN_PERSONAL"]) < 8:
+                    #     window2["OUTPUT"].update("U need to complete PIN.")
+                    #     values2["DEPOSIT"] = ""
+                    #     window2["DEPOSIT"].update("0")
+                    #     continue
+                    
+                    # if len(values2["DEPOSIT"]) > 1 and len(values2["PIN_PERSONAL"]) < 8:
+                    #     window2["OUTPUT"].update("U need to complete PIN.")
+                    #     values2["DEPOSIT"] = "0"
+                    #     window2["DEPOSIT"].update("0")
+                    #     continue
+                    if isFull:
+                        isFull = False
+                        continue
+                    if self.ValidateNumber(event2, values2, window2, "DEPOSIT") == "0":
+                        window2["OUTPUT"].update("Using number only")
+                        continue
+                    if len(values2["DEPOSIT"]) == 0:
+                        canDelete = True
+                    if canDelete and len(values2["DEPOSIT"]) == 0:
+                        isNotWritten = True
+                        window2["DEPOSIT"].update("0")
+                        canDelete = False
+                        length = 0
+                        self.hold = ""
+                        continue
+                    elif isNotWritten:
+                        window2["DEPOSIT"].update(values2["DEPOSIT"][1])
+                        isNotWritten = False
+                        canDelete = True
+
+                    split_hold = self.hold.split(",")
+                    split_values = values2["DEPOSIT"].split(",")
+                    res_hold = "".join(split_hold)
+                    res_values = "".join(split_values)
+                    if res_hold == res_values:
+                        if length == 0:
+                            length = 4
+                        else:
+                            length -= 1
+                        self.deleteComma(event2, window2, values2["DEPOSIT"])
+                        self.hold = values2["DEPOSIT"][:-1]
+                        continue
+                    else:
+                        self.hold = values2["DEPOSIT"][:-1]
+                    if length == 6:
+                        length = 4
+                    else:
+                        length += 1
+                    self.addComma("DEPOSIT", values2["DEPOSIT"], window2, length)
+
                 window.un_hide()
                 window2.close()
             elif event == "Enter":
@@ -167,7 +234,7 @@ class GUI:
                 if isValidated:
                     sg.popup("Login successfully", title="Congrats")
                     layout_service = [
-                        [sg.Text("Welcome " + locationATM, background_color="black", font="Times", size=(41, 2), justification="center")],
+                        [sg.Text("Welcome " + locationATM, text_color="#00ffff", background_color="black", font="50", size=(41, 2), justification="center")],
                         [sg.Button("CHECK BALANCE", size=(15, 2)), sg.Button("TRANSFERING", size=(15, 2))],
                         [sg.Button("DEPOSIT", size=(15, 2)), sg.Button("WITHDRAW", size=(15, 2))],
                         [sg.Exit(size=(41, 2))]
@@ -447,7 +514,7 @@ class GUI:
                             count = 0
                             while True:
                                 window_service.hide()
-                                event_thanks, _ = window_thanks.read(timeout=10)
+                                _, _ = window_thanks.read(timeout=10)
                                 if mySleep(count, "goodbye"):
                                     break
                                 count += 1

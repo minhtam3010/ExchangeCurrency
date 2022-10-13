@@ -3,13 +3,13 @@ import PySimpleGUI as sg
 from BankingATM.BankingTracsaction import Banking
 from gui.processLoading import ProcessLoading, ProcessLoading2, mySleep
 from show_money import ShowMoney
-from card_gui import CardGUI
 
 class GUI:
 
     def __init__(self):
         self.hold = "0"
         self.Bank = Banking()
+        self.myCard = {"VIB.png": "Tam", "AGRIBANK.png": "An"}
 
     def getUsersFile(self):
         users_file = open("./BankingATM/users/user.txt", "r+")
@@ -106,9 +106,9 @@ class GUI:
             if event == sg.WIN_CLOSED:
                 break
             split_arr = values["CARD"].split("/")
-            if split_arr[-1] == "VIB.png":
+            if split_arr[-1] in self.myCard.keys():
                 layout_img = [
-                    [sg.Image(filename="gui/img/VIB.png")],
+                    [sg.Image(filename="gui/card/"+split_arr[-1])],
                     [sg.Button("Back", size=(25, 1.2), enable_events=True), sg.Button("Ok", size=(25, 1.2), enable_events=True)]
                 ]
                 window_img = sg.Window("Img", layout_img, element_justification="center")
@@ -120,14 +120,15 @@ class GUI:
                     if event_img == "Ok":
                         window_img.hide()
                         layout = [
+                            [sg.Text("Hi Mrs." + self.myCard[split_arr[-1]], justification="left", background_color="black", text_color="#00ffff")],
                             [sg.Text("USERNAME:"), sg.Input(key="USERNAME")],
-                            [sg.Text("PIN:"), sg.Input(key="PIN_PERSONAL", password_char="*", enable_events=True)],
+                            [sg.Text("PASSWORD:"), sg.Input(key="PIN_PERSONAL", password_char="*", enable_events=True)],
                             [sg.Button("Enter", size=(27, 1.2))],
                             [sg.Button("Create Account", size=(12, 1.2), ), sg.Exit(size=(8, 1.2))],
                             [sg.Text(key="OUTPUT")]
                         ]
                         sg.set_options(font="Times", element_size=(100, 2), )
-                        window = sg.Window("ATM", layout, element_justification="right")
+                        window = sg.Window("ATM", layout, element_justification="center")
                         while True:
                             users_file, users = self.getUsersFile()
                             event, values = window.read()
@@ -178,6 +179,7 @@ class GUI:
                                             continue
                                         users_file.close()
                                         break
+
                                     if self.ValidateNumber(event2, values2, window2, "PIN_PERSONAL") == "0":
                                         window2["OUTPUT"].update("Please enter validate number!!!")
                                         continue
@@ -545,7 +547,7 @@ class GUI:
                 window_img.close()    
             else:
                 layout_img = [
-                    [sg.Image(filename="gui/img/TPBANK.png")],
+                    [sg.Image(filename="gui/card/" + split_arr[-1])],
                     [sg.Button("Back", size=(25, 1.2), enable_events=True), sg.Button("Ok", size=(25, 1.2), enable_events=True)]
                 ]
                 window_img = sg.Window("Img", layout_img, element_justification="center")
@@ -571,8 +573,6 @@ class GUI:
                 window_img.close()    
             window_card.un_hide()
         window_card.close() 
-
-
 
 
 app = GUI()

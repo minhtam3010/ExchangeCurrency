@@ -106,14 +106,14 @@ class GUI:
 
         window_path = sg.Window("FINDING PLACE", layout_path, element_justification="center")
         while True:
-            event, values = window_path.read()
-            if event == sg.WIN_CLOSED:
+            event_path, values_path = window_path.read()
+            if event_path == sg.WIN_CLOSED:
                 break
-            if event == "OK":
+            if event_path == "OK":
                 window_path.hide()
-                sp = ShortestPath(values["PLACE"])
-                res = sp.FindShortestPathAtm(0)
-                location_path = [sp.label[i] for i in res[:-1]]
+                sp = ShortestPath(values_path["PLACE"])
+                res_path = sp.FindShortestPathAtm(0)
+                location_path = [sp.label[i] for i in res_path[:-1]]
                 self.Bank = Banking(location_path[-1])
                 _, window_process3 = ProcessLoading3(sg, location_path)
                 window_process3.close()
@@ -358,7 +358,7 @@ class GUI:
                                                                             self.Bank.Loading("GUI")
                                                                             self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
                                                                             self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
-                                                                            exchangeCurr, location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM, "console")
+                                                                            exchangeCurr, location, second_location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM, res_path[-2], "console")
                                                                             # Printing Bill
                                                                             layout_bill = [
                                                                                 [sg.Text("Annoucement")],
@@ -377,7 +377,7 @@ class GUI:
                                                                                     break
                                                                             window_bill.close()
                                                                             
-                                                                            _, window_process2 = ProcessLoading2(sg, "Văn Lang Đặng Thùy Trâm")
+                                                                            _, window_process2 = ProcessLoading2(sg, second_location)
                                                                             self.Bank.currentAmountATM = 0
                                                                             isRunningOut = True
                                                                             isPulled = True

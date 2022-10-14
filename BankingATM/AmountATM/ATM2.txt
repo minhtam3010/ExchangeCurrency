@@ -1,2 +1,2 @@
 ATM Văn Lang Phan Văn Trị 
-CurrentAmount: 5,000,000
+CurrentAmount: 4,000,000

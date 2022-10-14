@@ -5,11 +5,13 @@ class Banking(MyFileHandling):
 
     def __init__(self, place):
         super().__init__()
+        self.first_place = place
         self.place = {"ATM Văn Lang District 1": ["ATM1.txt", "unitOfMoneyATM1.txt"], "ATM Văn Lang Phan Văn Trị": ["ATM2.txt", "unitOfMoneyATM2.txt"], "ATM Văn Lang Đặng Thùy Trâm": ["ATM3.txt", "unitOfMoneyATM3.txt"]}
         self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[place][1])
         self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[place][0])
         self.currentAmountATM, _ = self.filterAmount(self.res[1], "")
         self.location = self.res[0]
+
 
     def GetUnitOfMoneyInATM(self, filename):
         currency_file = open(filename, "a+")
@@ -71,9 +73,11 @@ class Banking(MyFileHandling):
             sleep(2)
         print("100%", flush=True)
 
-    def AutomatedPullMoney(self, currency_file, amountAtm_file, currency_dict, numberBorrowed, location, access="gui"):
-        second_atm_file, second_location = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM2.txt")
-        second_currency_file, second_currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM2.txt")
+    def AutomatedPullMoney(self, currency_file, amountAtm_file, currency_dict, numberBorrowed, location, idx_place, access="gui"):
+        sp = ShortestPath("ATM")
+        res = sp.FindShortestPathAtm(idx_place)
+        second_atm_file, second_location = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[sp.label[res[-2]]][0])
+        second_currency_file, second_currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[sp.label[res[-2]]][1])
         second_currency_dict, res_currency = self.Calculation(numberBorrowed, second_currency_dict)
         self.ProcessAmountATM(second_currency_file, second_atm_file, numberBorrowed, second_currency_dict, second_location, access)
         for key, value in res_currency.items():
@@ -98,7 +102,7 @@ class Banking(MyFileHandling):
                     currencyList.pop(0)
         return currency_dict, res_currency
 
-    def ExchangeCurrencyFunc(self, number, access="gui"):
+    def ExchangeCurrencyFunc(self, number, idx_place, access="gui"):
         
         if self.currentAmountATM == 0:
             print("ATM Machine " + self.location + " is running out of money.")
@@ -108,26 +112,26 @@ class Banking(MyFileHandling):
             smartATM_service = input("Do you want to wait for the automated pulling money process from another location?: ")
             if smartATM_service.upper() == "Y":
                 print("Process is loading.......")
-                second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res, access)
+                second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res, idx_place, access)
                 self.Pending(self.location, second_location)
-                self.currency_file, self.currency_dict = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.place][1])
-                self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.place][0])
+                print(self.place[self.first_place][1])
+                self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[self.first_place][1])
+                self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.first_place][0])
             else:
                 return {}, number
         
-
         self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
         self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
         return res_currency, self.location
     
-    def RequestPullingMoney(self, number, currentAmountATM, access="gui"):
-        second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res, access)
+    def RequestPullingMoney(self, number, currentAmountATM, idx_place, access="gui"):
+        second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res, idx_place, access)
         # self.Pending(location, second_location)
-        self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
-        self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
+        self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[self.first_place][1])
+        self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.first_place][0])
         self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
         self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
-        return res_currency, self.location
+        return res_currency, self.location, second_location
 
     def HistoryTransaction(self, file, grant, usr, beforeAmount, afterAmount, money):
         # grant 0: ATM-admin 1: user
@@ -165,7 +169,7 @@ class ExchangeCurrency(object):
         pin = input("Enter your PIN: ")
         amount = 1
         while amount != 0:
-            sp = ShortestPath("BookStore")
+            sp = ShortestPath("ATM")
             res = sp.FindShortestPathAtm(0)
             bankingTransaction = Banking(sp.label[res[-2]])
             print(amount)
@@ -176,7 +180,7 @@ class ExchangeCurrency(object):
             while not (bankingTransaction.Check(currentAmount, userInput)):
                 userInput = input("Your amount value greater than the current value that u have: ")
                 _, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
-            exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput, "console")
+            exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput, res[-2], "console")
             if len(exchangeCurr) == 0:
                 print("Thanks for using the service. Have a great day!!!")
                 return

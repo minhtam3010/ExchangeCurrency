@@ -118,6 +118,7 @@ class ShortestPath(object):
 
 
 if __name__ == "__main__":
-    sp = ShortestPath("BookStore")
+    sp = ShortestPath("ATM")
     res = sp.FindShortestPathAtm(0)
+    res = sp.FindShortestPathAtm(3)
     print(res)

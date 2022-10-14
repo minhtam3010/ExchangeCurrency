@@ -1,6 +1,15 @@
 from BankingATM.FileExtraction import MyFileHandling
+from BankingATM.greedy import ShortestPath
 
 class Banking(MyFileHandling):
+
+    def __init__(self, place):
+        super().__init__()
+        self.place = {"ATM Văn Lang District 1": ["ATM1.txt", "unitOfMoneyATM1.txt"], "ATM Văn Lang Phan Văn Trị": ["ATM2.txt", "unitOfMoneyATM2.txt"], "ATM Văn Lang Đặng Thùy Trâm": ["ATM3.txt", "unitOfMoneyATM3.txt"]}
+        self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[place][1])
+        self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[place][0])
+        self.currentAmountATM, _ = self.filterAmount(self.res[1], "")
+        self.location = self.res[0]
 
     def GetUnitOfMoneyInATM(self, filename):
         currency_file = open(filename, "a+")
@@ -101,8 +110,8 @@ class Banking(MyFileHandling):
                 print("Process is loading.......")
                 second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - self.currentAmountATM, self.res, access)
                 self.Pending(self.location, second_location)
-                self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/unitOfMoneyATM1.txt")
-                self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/ATM1.txt")
+                self.currency_file, self.currency_dict = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.place][1])
+                self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.place][0])
             else:
                 return {}, number
         
@@ -156,7 +165,9 @@ class ExchangeCurrency(object):
         pin = input("Enter your PIN: ")
         amount = 1
         while amount != 0:
-            bankingTransaction = Banking()
+            sp = ShortestPath("BookStore")
+            res = sp.FindShortestPathAtm(0)
+            bankingTransaction = Banking(sp.label[res[-2]])
             print(amount)
             f, usrExtension, pin = bankingTransaction.openFile(pin)
             userName, currentAmount = bankingTransaction.getCurrentAmount(f)

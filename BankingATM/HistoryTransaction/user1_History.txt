@@ -362,3 +362,27 @@
 	+ Money: 6000000
 	+ Before Money: 494160000
 	+ After Amount: 488160000
+08:23:08 (14/10/2022): 
+	+ Money: 585000
+	+ Before Money: 488160000
+	+ After Amount: 487575000
+08:27:07 (14/10/2022): 
+	+ Money: 689000
+	+ Before Money: 487575000
+	+ After Amount: 486886000
+08:27:47 (14/10/2022): 
+	+ Money: 4500000
+	+ Before Money: 486886000
+	+ After Amount: 482386000
+14:43:05 (14/10/2022): 
+	+ Money: 500000
+	+ Before Money: 481886000
+	+ After Amount: 481386000
+14:47:56 (14/10/2022): 
+	+ Money: 500000
+	+ Before Money: 481386000
+	+ After Amount: 480886000
+14:48:54 (14/10/2022): 
+	+ Money: 500000
+	+ Before Money: 480886000
+	+ After Amount: 480386000

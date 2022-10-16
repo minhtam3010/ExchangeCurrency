@@ -1,7 +1,4 @@
-from turtle import back
-from weakref import finalize
 import PySimpleGUI as sg
-
 from BankingATM.BankingTracsaction import Banking
 from gui.processLoading import ProcessLoading, ProcessLoading2, ProcessLoading3, mySleep
 from show_money import ShowMoney
@@ -312,10 +309,25 @@ class GUI:
                                                     isGoHome = True
                                                     break
                                                 elif event_service == "CHANGE PLACE":
-                                                    isChangedPlace = True
-                                                    changePlaceIdx = res_path[-2]
-                                                    window_path["PLACENOW"].update("Now you are at " + location_path[-1])
-                                                    break
+                                                    if changePlaceIdx == 4 or values_path["PLACE"] == "BookStore":
+                                                        layout_alert = [
+                                                            [sg.Text("This is final nearest place, so u can change it anymore. Apology for this disturbing!!!!")],
+                                                            [sg.Button("Back", size=(15, 1.2))]
+                                                        ]
+
+                                                        window_alert = sg.Window("Alert", layout_alert)
+                                                        while True:
+                                                            window_service.hide()
+                                                            event_alert, _ = window_alert.read()
+                                                            if event_alert == "Back":
+                                                                break
+                                                        window_alert.close()
+                                                        window_service.un_hide()
+                                                    else:
+                                                        isChangedPlace = True
+                                                        changePlaceIdx = res_path[-2]
+                                                        window_path["PLACENOW"].update("Now you are at " + location_path[-1])
+                                                        break
                                                 elif event_service == "WITHDRAW":
                                                     if self.Bank.currentAmountATM == 0:
                                                         layout_out_service = [
@@ -649,5 +661,6 @@ class GUI:
             window_path.un_hide()
         window_path.close()
 
-app = GUI()
-app.Window()
+if __name__ == "__main__":
+    app_testing = GUI()
+    app_testing.Window()

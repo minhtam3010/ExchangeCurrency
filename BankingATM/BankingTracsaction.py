@@ -169,7 +169,7 @@ class Banking(MyFileHandling):
 
 class ExchangeCurrency(object):
     
-    def Running(self):
+    def Console(self):
         import random
         pin = input("Enter your PIN: ")
         amount = 1

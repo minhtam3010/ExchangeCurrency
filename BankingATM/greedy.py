@@ -23,11 +23,6 @@ class ShortestPath(object):
         self.place = {"ATM": [3, 4, 5], "BookStore": [5]}
         self.location = location
     
-    # def printSolution(self, dist) -> None:
-    #     print("Vertex \tDistance from Source")
-    #     for node in range(self.V):
-    #         print(node, "\t\t", dist[node])
-
     def printResult(self, res):
         print("Shortest path: ")
         for i in range(len(res[:-1])):

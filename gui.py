@@ -1,3 +1,5 @@
+from turtle import back
+from weakref import finalize
 import PySimpleGUI as sg
 
 from BankingATM.BankingTracsaction import Banking
@@ -9,7 +11,6 @@ class GUI:
 
     def __init__(self):
         self.hold = "0"
-        # self.Bank = Banking()
         self.myCard = {"VIB.png": "Tam", "AGRIBANK.png": "An"}
 
     def getUsersFile(self):
@@ -99,22 +100,27 @@ class GUI:
 
     def Window(self):
         layout_path = [
+            [sg.Text(key="PLACENOW", enable_events=True, background_color="black", text_color="#00ffff")],
             [sg.Text("Finding the shortest path\nChoosing the location that u want to go....", size=(40, 2), justification="center")],
             [sg.Combo(values=["ATM", "BookStore"], size=(40, 2), background_color="black", text_color="white", button_background_color="red", button_arrow_color="black", key="PLACE")],
             [sg.Button("OK", size=(30, 1.2))]
         ]
-
-        window_path = sg.Window("FINDING PLACE", layout_path, element_justification="center")
+        isGoHome = False
+        isChangedPlace = False
+        isOnceWithDraw = False
+        changePlaceIdx = 0
+        window_path = sg.Window("FINDING PLACE", layout_path, element_justification="center", finalize=True)
+        window_path["PLACENOW"].update("Now you are at HOME (District 2)")
         while True:
             event_path, values_path = window_path.read()
             if event_path == sg.WIN_CLOSED:
                 break
             if event_path == "OK":
-                window_path.hide()
                 sp = ShortestPath(values_path["PLACE"])
-                res_path = sp.FindShortestPathAtm(0)
+                res_path = sp.FindShortestPathAtm(changePlaceIdx)
                 location_path = [sp.label[i] for i in res_path[:-1]]
                 self.Bank = Banking(location_path[-1])
+                window_path.hide()
                 _, window_process3 = ProcessLoading3(sg, location_path)
                 window_process3.close()
 
@@ -151,7 +157,7 @@ class GUI:
                                     [sg.Text(key="OUTPUT")]
                                 ]
                                 sg.set_options(font="Times", element_size=(100, 2), )
-                                window = sg.Window("ATM", layout, element_justification="center")
+                                window = sg.Window("ATM", layout, element_justification="center", finalize=True)
                                 while True:
                                     users_file, users = self.getUsersFile()
                                     event, values = window.read()
@@ -162,6 +168,10 @@ class GUI:
                                     else:
                                         window["OUTPUT"].update("")
 
+                                    if isGoHome:
+                                        break
+                                    elif isChangedPlace:
+                                        break
                                     if event == sg.WIN_CLOSED or event == "Exit":
                                         isExited = sg.popup_ok_cancel("Do u want to exit?", title="Alert")
                                         if isExited == "OK":
@@ -273,12 +283,12 @@ class GUI:
                                             sg.popup("Login successfully", title="Congrats")
                                             layout_service = [
                                                 [sg.Text("Welcome " + location_path[-1], text_color="#00ffff", background_color="black", font="50", size=(41, 2), justification="center")],
-                                                [sg.Button("CHECK BALANCE", size=(15, 2)), sg.Button("TRANSFERING", size=(15, 2))],
-                                                [sg.Button("DEPOSIT", size=(15, 2)), sg.Button("WITHDRAW", size=(15, 2))],
+                                                [sg.Button("CHECK BALANCE", size=(15, 2)), sg.Button("CHANGE PLACE", size=(15, 2))],
+                                                [sg.Button("GO HOME", size=(15, 2)), sg.Button("WITHDRAW", size=(15, 2))],
                                                 [sg.Exit(size=(41, 2))]
                                             ]
                                             window_service = sg.Window("Services", layout_service, element_justification="center")
-                                            
+                                            isWithDrawFile = False
                                             while True:
                                                 window.hide()
                                                 event_service, _ = window_service.read()
@@ -298,6 +308,14 @@ class GUI:
                                                             break
                                                     window_service.un_hide()
                                                     window_balance.close()
+                                                elif event_service == "GO HOME":
+                                                    isGoHome = True
+                                                    break
+                                                elif event_service == "CHANGE PLACE":
+                                                    isChangedPlace = True
+                                                    changePlaceIdx = res_path[-2]
+                                                    window_path["PLACENOW"].update("Now you are at " + location_path[-1])
+                                                    break
                                                 elif event_service == "WITHDRAW":
                                                     if self.Bank.currentAmountATM == 0:
                                                         layout_out_service = [
@@ -328,6 +346,10 @@ class GUI:
                                                             window_service.hide()
                                                             event_withdraw, values_withdraw = window_withdraw.read()
                                                             if event_withdraw == "Back":
+                                                                if isWithDrawFile:
+                                                                    isWithDrawFile = False
+                                                                    # currency_file_withdraw.close()
+                                                                    # amount_atmFile_withdraw.close()
                                                                 break
                                                             if event_withdraw == "Enter":
                                                                 showMoney = ShowMoney(values_withdraw["MONEY"])
@@ -340,6 +362,10 @@ class GUI:
                                                                 balanceAmount, withdrawAmount = self.Bank.filterAmount(balance, values_withdraw["MONEY"])
                                                                 if self.Bank.currentAmountATM < withdrawAmount:
                                                                     window_withdraw.hide()
+                                                                    if isOnceWithDraw:
+                                                                        isOnceWithDraw = False
+                                                                        currency_file_withdraw.close()
+                                                                        amount_atmFile_withdraw.close()
                                                                     _, window_func_process = ProcessLoading(sg, "Problem")
                                                                     window_func_process.close()
                                                                     layout_pulling = [
@@ -356,7 +382,7 @@ class GUI:
                                                                             remainderAmount = balanceAmount - withdrawAmount
                                                                             window_withdraw.hide()
                                                                             self.Bank.Loading("GUI")
-                                                                            self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                                                            self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "a+"), fullname, remainderAmount)
                                                                             self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
                                                                             exchangeCurr, location, second_location = self.Bank.RequestPullingMoney(withdrawAmount, self.Bank.currentAmountATM, res_path[-2], "console")
                                                                             # Printing Bill
@@ -387,9 +413,10 @@ class GUI:
                                                                             isRefused = True
                                                                             break
                                                                     window_pulling.close()
-
                                                                 else:
-                                                                    exchangeCurr, location = self.Bank.ExchangeCurrencyFunc(withdrawAmount, "console")
+                                                                    exchangeCurr, location, currency_file_withdraw, amount_atmFile_withdraw = self.Bank.ExchangeCurrencyFunc(withdrawAmount, -1, "gui")
+                                                                    isOnceWithDraw = True
+                                                                    isWithDrawFile = True
                                                                 if isRefused:
                                                                     break
                                                                 
@@ -416,6 +443,8 @@ class GUI:
                                                                         elif event_process == "No":
                                                                             window_showMoney = showMoney.Money(exchangeCurr)
                                                                             isWithDraw = False
+                                                                            currency_file_withdraw.close()
+                                                                            amount_atmFile_withdraw.close()
                                                                             break
                                                                     window_showMoney.close()
                                                                     window_withdraw.un_hide()
@@ -424,7 +453,7 @@ class GUI:
                                                                     remainderAmount = balanceAmount - withdrawAmount
                                                                     window_withdraw.hide()
                                                                     self.Bank.Loading("GUI")
-                                                                    self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "r+"), fullname, remainderAmount)
+                                                                    self.Bank.EditFile(open("./BankingATM/users/" + values["USERNAME"] + ".txt", "a+"), fullname, remainderAmount)
                                                                     self.Bank.processHistory(values["USERNAME"], balanceAmount, remainderAmount, withdrawAmount)
                                                                     # Printing Bill
                                                                     layout_bill = [
@@ -457,6 +486,10 @@ class GUI:
                                                                             window_withdraw.hide()
                                                                             event_process, _ = window_process.read()
                                                                             if event_process == "Yes":
+                                                                                currency_file_withdraw.close()
+                                                                                amount_atmFile_withdraw.close()
+                                                                                self.Bank = Banking(location_path[-1])
+                                                                                
                                                                                 window_showMoney = showMoney.Money(exchangeCurr)
                                                                                 window_withdraw["MONEY"].update("0")
                                                                                 window_withdraw["MONEY"].set_focus(True)
@@ -469,6 +502,8 @@ class GUI:
                                                                             if event_process == "No":
                                                                                 window_showMoney = showMoney.Money(exchangeCurr)
                                                                                 isWithDraw = False
+                                                                                currency_file_withdraw.close()
+                                                                                amount_atmFile_withdraw.close()
                                                                                 break
                                                                         window_withdraw.un_hide()
                                                                         window_process.close()
@@ -563,9 +598,17 @@ class GUI:
                                             sg.popup("Your pin doesn't exist or incorrect!!!", title="Alert")
                                             window["PIN_PERSONAL"].update("")
                                             window["USERNAME"].update("")
+                                        if isGoHome:
+                                            break
+                                        elif isChangedPlace:
+                                            break
                                 window.close()
                                 window_img.un_hide()
                                 users_file.close()
+                            if isGoHome:
+                                break
+                            elif isChangedPlace:
+                                break
                         window_img.close()    
                     else:
                         layout_img = [
@@ -593,6 +636,14 @@ class GUI:
                                 window_invalid.close()
                                 break
                         window_img.close()    
+                    if isGoHome:
+                        isGoHome = False
+                        changePlaceIdx = 0
+                        window_path["PLACENOW"].update("Now you are at HOME (District 2)")
+                        break
+                    elif isChangedPlace:
+                        isChangedPlace = False
+                        break
                     window_card.un_hide()
                 window_card.close() 
             window_path.un_hide()

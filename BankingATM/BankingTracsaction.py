@@ -26,6 +26,7 @@ class Banking(MyFileHandling):
 
         return currency_file, res
 
+
     def GetCurrentAmountATM(self, filename):
         amountATM_file = open(filename, "a+")
         amountATM_file.seek(0)
@@ -37,6 +38,7 @@ class Banking(MyFileHandling):
             else:
                 res.append(each[15:])
         return amountATM_file, res
+
 
     def ProcessAmountATM(self, currency_file, amountATM_file, amountATM, currency_dict, res, access="gui"):
         currency_file.seek(0)
@@ -52,6 +54,7 @@ class Banking(MyFileHandling):
         if access == "console":
             currency_file.close()
             amountATM_file.close()
+        return currency_file, amountATM_file
         
 
     def Pending(self, location, second_location):
@@ -102,8 +105,7 @@ class Banking(MyFileHandling):
                     currencyList.pop(0)
         return currency_dict, res_currency
 
-    def ExchangeCurrencyFunc(self, number, idx_place, access="gui"):
-        
+    def ExchangeCurrencyFunc(self, number, idx_place, access="gui") -> tuple[dict, str]:
         if self.currentAmountATM == 0:
             print("ATM Machine " + self.location + " is running out of money.")
         elif self.currentAmountATM < number:
@@ -118,11 +120,11 @@ class Banking(MyFileHandling):
                 self.currency_file, self.currency_dict = self.GetUnitOfMoneyInATM("./BankingATM/AmountATM/" + self.place[self.first_place][1])
                 self.amountAtm_file, self.res = self.GetCurrentAmountATM("./BankingATM/AmountATM/" + self.place[self.first_place][0])
             else:
-                return {}, number
-        
+                return {}, number, "", ""
+
         self.currency_dict, res_currency = self.Calculation(number, self.currency_dict)
-        self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
-        return res_currency, self.location
+        currency_file, amountATM_file = self.ProcessAmountATM(self.currency_file, self.amountAtm_file, number, self.currency_dict, self.res, access)
+        return res_currency, self.location, currency_file, amountATM_file
     
     def RequestPullingMoney(self, number, currentAmountATM, idx_place, access="gui"):
         second_location = self.AutomatedPullMoney(self.currency_file, self.amountAtm_file, self.currency_dict, number - currentAmountATM, self.res, idx_place, access)
@@ -141,6 +143,7 @@ class Banking(MyFileHandling):
         elif grant == 1:
             file.write(current_time + " (" + self.day + ")" + ": " + "\n\t+ " + "Money: " + str(money) + "\n\t+ " + "Before Money: " + str(beforeAmount) + "\n\t+ " + "After Amount: " + str(afterAmount) + "\n")
     
+
     def processHistory(self, usrExtension, currentAmount, remainderAmount, userInput, access="gui"):
         fileDay, currentDay = self.getCurrentDay()
         with open("./BankingATM/HistoryTransaction/historyATM.txt", "a") as history_atm:
@@ -153,6 +156,7 @@ class Banking(MyFileHandling):
         if access == "console":
             fileDay.close()
 
+
     def printBillTransaction(self, date, time, location, receipt, card_no, fullname, amount, curent_amount):
         from pathlib import Path
         from docxtpl import DocxTemplate
@@ -161,6 +165,7 @@ class Banking(MyFileHandling):
         context = {"DATE": date, "TIME": time, "LOCATION": location, "RECEIPT": receipt, "CARD": card_no, "FULLNAME": fullname, "AMOUNT": amount, "CURENTAMOUNT": curent_amount}
         doc.render(context)
         doc.save(Path(__file__).parent / "Bill/generated_bill_transaction.docx")
+
 
 class ExchangeCurrency(object):
     
@@ -180,7 +185,7 @@ class ExchangeCurrency(object):
             while not (bankingTransaction.Check(currentAmount, userInput)):
                 userInput = input("Your amount value greater than the current value that u have: ")
                 _, userInput = bankingTransaction.filterAmount(currentAmount, userInput)
-            exchangeCurr, location = bankingTransaction.ExchangeCurrencyFunc(userInput, res[-2], "console")
+            exchangeCurr, location, _, _ = bankingTransaction.ExchangeCurrencyFunc(userInput, res[-2], "console")
             if len(exchangeCurr) == 0:
                 print("Thanks for using the service. Have a great day!!!")
                 return

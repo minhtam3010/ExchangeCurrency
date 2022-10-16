@@ -95,7 +95,7 @@ class ShortestPath(object):
 
     def FindShortestPathAtm(self, start: int) -> list[int]:
         getShortestPath = []
-        self.place[self.location] = list(filter(lambda x: x != start, self.place[self.location]))
+        self.place[self.location] = list(filter(lambda x: x != start and x > start, self.place[self.location]))
         for end in self.place[self.location]:
             res = self.dijkstra(start)
             res, minPath, idx, values = self.filter(res, end)
@@ -106,9 +106,9 @@ class ShortestPath(object):
             res = self.findPath(res, start, minPath, values)
             res = res[::-1]
             getShortestPath.append(res)
-        
         min_values_path = getShortestPath[0][-1]
         final_res = getShortestPath[0]
+        
         for i in range(1, len(getShortestPath)):
             if min_values_path > getShortestPath[i][-1]:
                 min_values_path = getShortestPath[i][-1]
@@ -119,6 +119,6 @@ class ShortestPath(object):
 
 if __name__ == "__main__":
     sp = ShortestPath("ATM")
-    res = sp.FindShortestPathAtm(0)
-    res = sp.FindShortestPathAtm(3)
+    # res = sp.FindShortestPathAtm(0)
+    res = sp.FindShortestPathAtm(4)
     print(res)

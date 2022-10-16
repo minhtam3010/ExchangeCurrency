@@ -661,6 +661,6 @@ class GUI:
             window_path.un_hide()
         window_path.close()
 
-if __name__ == "__main__":
-    app_testing = GUI()
-    app_testing.Window()
+# if __name__ == "__main__":
+#     app_testing = GUI()
+#     app_testing.Window()

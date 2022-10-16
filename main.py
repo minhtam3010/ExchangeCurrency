@@ -1,8 +1,7 @@
-from BankingATM.BankingTracsaction import ExchangeCurrency
+from run import Running
 
 def main():
-    exchange_currency = ExchangeCurrency()
-    exchange_currency.Running()
-
+    Running()
+        
 if __name__ == "__main__":
     main()

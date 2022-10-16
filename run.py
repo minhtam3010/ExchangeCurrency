@@ -1,6 +1,6 @@
 from curses import wrapper
 from BankingATM.BankingTracsaction import ExchangeCurrency
-from window import GUI
+from window_gui import GUI
 from Greeting.greeting import Greeting
 
 def Running():

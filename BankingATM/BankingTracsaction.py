@@ -1,5 +1,6 @@
 from BankingATM.FileExtraction import MyFileHandling
 from BankingATM.greedy import ShortestPath
+from BankingATM.amount2char_amount import convert
 
 class Banking(MyFileHandling):
 
@@ -160,9 +161,10 @@ class Banking(MyFileHandling):
     def printBillTransaction(self, date, time, location, receipt, card_no, fullname, amount, curent_amount):
         from pathlib import Path
         from docxtpl import DocxTemplate
+        charAmount = (int(amount.replace(",","" )))
         document_path = Path(__file__).parent / "Bill/bill_atm.docx"
         doc = DocxTemplate(document_path)
-        context = {"DATE": date, "TIME": time, "LOCATION": location, "RECEIPT": receipt, "CARD": card_no, "FULLNAME": fullname, "AMOUNT": amount, "CURENTAMOUNT": curent_amount}
+        context = {"DATE": date, "TIME": time, "LOCATION": location, "RECEIPT": receipt, "CARD": card_no, "FULLNAME": fullname, "AMOUNT": amount, "CHARAMOUNT": convert(charAmount), "CURENTAMOUNT": curent_amount}
         doc.render(context)
         doc.save(Path(__file__).parent / "Bill/generated_bill_transaction.docx")
 

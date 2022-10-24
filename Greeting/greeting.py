@@ -5,7 +5,7 @@ import time
 def Greeting(stdscr):
     stdscr.clear()
     greeting = "Chào thầy và tất cả các bạn"
-    wishes = "Chúc thầy các bạn một ngày vui vẻ"
+    wishes = "Chúc thầy và các bạn một ngày vui vẻ"
     heading = "AI - Greedy Algorithms - Exchange Currency - ATM Banking"
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
     GREEN_COLOR = curses.color_pair(1)

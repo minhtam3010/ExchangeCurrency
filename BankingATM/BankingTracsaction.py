@@ -198,3 +198,8 @@ class ExchangeCurrency(object):
             bankingTransaction.printBillTransaction(bankingTransaction.day, bankingTransaction.today.strftime("%H:%M:%S"), location, random.randint(1, 1000), pin[:5], userName, bankingTransaction.filterNumber(userInput), bankingTransaction.filterNumber(remainderAmount))
             bankingTransaction.processHistory(usrExtension, currentAmount, remainderAmount, userInput)
             amount = bankingTransaction.currentAmountATM
+            userChoice = input("Do you want to use the service again?")
+            print("1. Yes")
+            print("2. No")
+            if userChoice != "1":
+                break
